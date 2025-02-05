@@ -1,2 +1,24 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Flutter/Dart related
+.dart_tool/
+.packages
+.buildlog
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+*.jks
+
+# Miscellaneous
+*.lock
+*.log
+*.tmp
+.DS_Store
+
+# Build outputs
+/build/
+flutter_out/
+
+# Generated files
+generated_plugin_registrant.dart
+pubspec.lock
