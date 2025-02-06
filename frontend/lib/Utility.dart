@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:frontend/Models/UserModel.dart';
+import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -155,11 +155,11 @@ Future<void> showMessageDialog(context, String title, String message) async {
   );
 }
 
-Future<UserModel?> getUserInfo() async {
+Future<Employeemodel?> getUserInfo() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   final data = prefs.getString('user_data');
   if (data != null) {
-    final user = UserModel.fromJson(json.decode(data));
+    final user = Employeemodel.fromJson(json.decode(data));
     return user;
   } else {
     return null;
