@@ -5,14 +5,18 @@ from rest_framework.response import Response
 from .models import Designation, Employee, Port
 from .serializers import EmployeeSerializer
 from django.core import serializers
+from django.http import JsonResponse
 
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def employee_list(request):
     if request.method == 'GET':
         employees = Employee.objects.select_related('designation').all()
-        serializer = EmployeeSerializer(employees, many=True)
-        return Response(serializer.data)
+        employee_data = []
+        for employee in employees:
+            employee_data.append(employee_object(employee))
+        
+        return JsonResponse(employee_data, safe=False)
 
     elif request.method == 'POST':
         profile_image = request.FILES.get('profile_image')
@@ -38,7 +42,8 @@ def employee_list(request):
             port=port
         )
         employee.save()
-        return Response(json.dumps(employee.to_dict()), status=status.HTTP_201_CREATED)
+        newEmployee = employee_object(employee)
+        return Response(newEmployee, status=status.HTTP_201_CREATED)
     
     elif request.method == 'PUT':
         try:
@@ -57,14 +62,9 @@ def employee_list(request):
         employee.date_of_birth = request.data['date_of_birth']
         employee.date_of_joining = request.data['date_of_joining']
         employee.port = Port.objects.get(id = request.data['port'])
-        print(employee.to_dict())
         employee.save()
-        return Response(json.dumps(employee.to_dict()), status=status.HTTP_200_OK)
-        # serializer = EmployeeSerializer(employee, data=request.data)
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return Response(serializer.data)
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        newEmployee = employee_object(employee)
+        return Response(newEmployee, status=status.HTTP_200_OK)
 
     elif request.method == 'DELETE':
         try:
@@ -73,6 +73,7 @@ def employee_list(request):
         except Employee.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         employee.delete()
+        
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
@@ -85,8 +86,9 @@ def employee_view(request):
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         if employee is not None:
-            serializer = EmployeeSerializer(employee)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            resEmployee = employee_object(employee)
+            return JsonResponse(resEmployee, safe=False)
+           
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -95,13 +97,32 @@ def login_view(request):
     if request.method == 'GET':
         employee_code = request.GET.get('employee_code')
         password = request.GET.get('password')
-        print(employee_code, password)
         # Authenticate the Employee
         employeeData = Employee.objects.filter(employee_code=employee_code, password=password).first()
         
         if employeeData is not None:
-            serializer = EmployeeSerializer(employeeData)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            resEmployee = employee_object(employeeData)
+            return JsonResponse(resEmployee, safe=False)
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
         
+def employee_object(employee):
+    return {
+            'id': employee.id,
+            'profile_image': employee.profile_image.url if employee.profile_image else None,
+            'employee_code': employee.employee_code,
+            'name': employee.name,
+            'mobile_number': employee.mobile_number,
+            'gender': employee.gender,
+            'password': employee.password,
+            'date_of_birth': employee.date_of_birth,
+            'date_of_joining': employee.date_of_joining,
+            'port': employee.port.id,
+            'port_name': employee.port.name,
+            'designation': {
+                'id': employee.designation.id,
+                'name': employee.designation.name,
+                'user_type': employee.designation.user_type,
+                'remote_checkin': employee.designation.remote_checkin
+            }
+        }

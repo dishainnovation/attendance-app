@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:geocoding/geocoding.dart';
@@ -45,12 +46,6 @@ Future<File?> captureImage() async {
   } else {
     return File('');
   }
-}
-
-Future get() async {
-  var request = http.get(Uri.parse("http://192.168.0.100:5000/hello"));
-  var response = await request;
-  return response.body;
 }
 
 Future compareImages(File? image1, File? image2) async {
@@ -194,4 +189,31 @@ TimeOfDay stringToTimeOfDay(String time) {
 
 String formatDate(DateTime date) {
   return DateFormat("yyyy-MM-dd").format(date);
+}
+
+String displayDate(DateTime date) {
+  return DateFormat("dd-MM-yyyy").format(date);
+}
+
+showSnackBar(BuildContext context, String title, String message,
+    ContentType contentType) {
+  var materialBanner = MaterialBanner(
+    elevation: 0,
+    backgroundColor: Colors.transparent,
+    forceActionsBelow: true,
+    content: AwesomeSnackbarContent(
+      title: title,
+      message: message,
+
+      /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
+      contentType: contentType,
+      // to configure for material banner
+      inMaterialBanner: true,
+    ),
+    actions: const [SizedBox.shrink()],
+  );
+
+  ScaffoldMessenger.of(context)
+    ..hideCurrentMaterialBanner()
+    ..showMaterialBanner(materialBanner);
 }

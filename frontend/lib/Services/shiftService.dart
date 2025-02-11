@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:frontend/Models/ShiftModel.dart';
 
@@ -28,7 +29,7 @@ Future<List<ShiftModel>> getShift() async {
 
 Future<ShiftModel> createShift(ShiftModel shift) async {
   try {
-    var data = shift.toJson();
+    shift.toJson();
     var request = await http.post(uri, body: shift.toJson());
 
     if (request.statusCode == 201) {
@@ -96,4 +97,11 @@ Future<List<ShiftModel>> getShiftsByPort(int portId) async {
   } catch (e) {
     throw Exception('Error occurred: $e');
   }
+}
+
+Future<ShiftModel?> getCurrentShift(int portId, TimeOfDay time) async {
+  ShiftModel shift;
+  List<ShiftModel> shifts = await getShift();
+  shift = shifts.firstWhere((s) => s.port == portId); //
+  return shift;
 }

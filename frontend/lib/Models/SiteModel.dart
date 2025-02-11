@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 class SiteModel {
   int id;
   String name;

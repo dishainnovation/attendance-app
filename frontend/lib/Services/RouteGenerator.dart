@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/Services/loginService.dart';
 import 'package:frontend/adminHome.dart';
 import 'package:frontend/designation.dart';
 import 'package:frontend/designationsList.dart';
@@ -13,6 +12,7 @@ import 'package:frontend/shift.dart';
 import 'package:frontend/terminal.dart';
 import 'package:frontend/terminalsList.dart';
 
+import '../checkIn.dart';
 import '../employee.dart';
 import '../shiftsList.dart';
 
@@ -52,6 +52,8 @@ class RouteGenerator {
             builder: (_) => Employee(
                   employeeesList: [],
                 ));
+      case '/check-in':
+        return MaterialPageRoute(builder: (_) => CheckIn());
       default:
         return errorRoute();
     }

@@ -1,9 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:frontend/Services/employeeService.dart';
+import 'package:frontend/Services/userNotifier.dart';
 import 'package:frontend/employee.dart';
-import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import 'Utility.dart';
 import 'widgets/ScaffoldPage.dart';
@@ -40,7 +40,7 @@ class _EmployeesListState extends State<EmployeesList> {
         allEmployeesList = employees;
         filteredEmployeesList = employees;
       });
-    });
+    }).catchError((onError) => throw Exception(onError));
   }
 
   @override
@@ -51,6 +51,11 @@ class _EmployeesListState extends State<EmployeesList> {
 
   @override
   Widget build(BuildContext context) {
+    EmployeeModel user = context.read<User>().user!;
+    filteredEmployeesList = filteredEmployeesList
+        .map((emp) => emp)
+        .where((emp) => emp.port == user.port)
+        .toList();
     return ScaffoldPage(
       title: 'Employees List',
       bottom: PreferredSize(
@@ -110,7 +115,10 @@ class _EmployeesListState extends State<EmployeesList> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(employee.designationName!),
+            Text(
+              employee.designation!.name,
+              style: TextStyle(color: Colors.blueAccent),
+            ),
             Text(
               employee.mobileNumber,
               style: TextStyle(color: Colors.grey),
@@ -123,10 +131,22 @@ class _EmployeesListState extends State<EmployeesList> {
             height: 8,
           ),
           Padding(
-            padding: const EdgeInsets.only(left: 17.0),
-            child: Text(
-              'Code: ${employee.employeeCode} | Port: ${employee.portName}',
-              style: TextStyle(color: Colors.grey),
+            padding: const EdgeInsets.only(
+              left: 17.0,
+              right: 15,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Code: ${employee.employeeCode}',
+                  style: TextStyle(color: Colors.grey),
+                ),
+                Text(
+                  'Port: ${employee.portName}',
+                  style: TextStyle(color: Colors.black),
+                ),
+              ],
             ),
           ),
           Padding(
@@ -149,7 +169,7 @@ class _EmployeesListState extends State<EmployeesList> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Birth : ${formatDate(DateTime.parse(employee.dateOfBirth))}',
+                  'Birth : ${displayDate(DateTime.parse(employee.dateOfBirth))}',
                   style: TextStyle(color: Colors.grey),
                 ),
                 Container(
@@ -158,7 +178,7 @@ class _EmployeesListState extends State<EmployeesList> {
                   height: 20,
                 ),
                 Text(
-                  'Hire Date: ${formatDate(DateTime.parse(employee.dateOfJoining))}',
+                  'Hire Date: ${displayDate(DateTime.parse(employee.dateOfJoining))}',
                   style: TextStyle(color: Colors.grey),
                 ),
               ],

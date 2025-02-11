@@ -3,8 +3,9 @@ import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:frontend/adminHome.dart';
 import 'package:frontend/home.dart';
 import 'package:frontend/userHome.dart';
+import 'package:provider/provider.dart';
 
-import 'Utility.dart';
+import 'Services/userNotifier.dart';
 
 class Screen extends StatefulWidget {
   const Screen({super.key});
@@ -19,27 +20,20 @@ class _ScreenState extends State<Screen> {
   @override
   void initState() {
     super.initState();
-    startApp();
-  }
-
-  startApp() async {
-    EmployeeModel? user = await getUserInfo();
-    if (user != null) {
-      setState(() {
-        this.user = user;
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    user = context.read<User>().user!;
     if (user == null) {
       return Scaffold(body: Center(child: CircularProgressIndicator()));
     } else {
-      if (user!.designationName == 'Super Admin') {
+      if (user!.designation!.user_type == 'SUPER_ADMIN') {
         return AdminHome();
-      } else if (user!.designationName == 'Admin') {
+      } else if (user!.designation!.user_type == 'ADMIN') {
         return HomePage();
+      } else if (user!.designation!.user_type == 'USER') {
+        return UserHome();
       }
       return UserHome();
     }

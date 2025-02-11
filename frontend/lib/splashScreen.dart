@@ -1,6 +1,9 @@
+// ignore: file_names
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
+import 'package:provider/provider.dart';
 
+import 'Services/userNotifier.dart';
 import 'Utility.dart';
 
 class Splashscreen extends StatefulWidget {
@@ -16,8 +19,7 @@ class _SplashscreenState extends State<Splashscreen> {
   void initState() {
     super.initState();
     Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pushReplacementNamed(
-          context, widget.isLoggedIn ? '/screen' : '/login');
+      startApp();
     });
   }
 
@@ -29,11 +31,8 @@ class _SplashscreenState extends State<Splashscreen> {
       if (user == null) {
         Navigator.pushReplacementNamed(context, '/login');
       } else {
-        Navigator.pushReplacementNamed(
-            context,
-            (user!.designation == 2 || user.designation == 3)
-                ? '/admin-home'
-                : '/home');
+        context.read<User>().user = EmployeeModel.fromJson(user.toJson());
+        Navigator.pushReplacementNamed(context, '/screen');
       }
     }
   }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:mime/mime.dart';
 import '../Models/EmployeeModel.dart';
@@ -30,12 +31,16 @@ Future<List<EmployeeModel>> getEmployees() async {
   }
 }
 
-Future<EmployeeModel> createEmployee(EmployeeModel employee, File file) async {
+Future<bool> createEmployee(EmployeeModel employee, File file) async {
   try {
     var request = http.MultipartRequest('POST', uri);
 
     employee.toJson().forEach((key, value) {
-      request.fields[key] = value;
+      if (key == 'designation') {
+        request.fields[key] = value['id'].toString();
+      } else {
+        request.fields[key] = value.toString();
+      }
     });
 
     final mimeTypeData =
@@ -52,26 +57,31 @@ Future<EmployeeModel> createEmployee(EmployeeModel employee, File file) async {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 201) {
-      var responseData = await response.stream.bytesToString();
-      var responseJson = json.decode(responseData);
-      return EmployeeModel.fromJson(
-          jsonDecode(responseJson) as Map<String, dynamic>);
+      // var responseData = await response.stream.bytesToString();
+      // var responseJson = json.decode(responseData);
+      return true;
     } else {
       throw Exception('Failed to save employees: ${response.reasonPhrase}');
     }
   } catch (e) {
+    if (kDebugMode) {
+      print(e);
+    }
     throw Exception('Error occurred: $e');
   }
 }
 
-Future<EmployeeModel> updateEmployee(
-    int id, EmployeeModel employee, File file) async {
+Future<bool> updateEmployee(int id, EmployeeModel employee, File file) async {
   try {
     Uri uriPut = Uri.parse('$url?id=$id');
     var request = http.MultipartRequest('PUT', uriPut);
 
     employee.toJson().forEach((key, value) {
-      request.fields[key] = value;
+      if (key == 'designation') {
+        request.fields[key] = value['id'].toString();
+      } else {
+        request.fields[key] = value.toString();
+      }
     });
 
     if (await file.exists()) {
@@ -88,16 +98,13 @@ Future<EmployeeModel> updateEmployee(
       http.StreamedResponse response = await request.send();
 
       if (response.statusCode == 200) {
-        var responseData = await response.stream.bytesToString();
-        var responseJson = json.decode(responseData);
-        return EmployeeModel.fromJson(
-            jsonDecode(responseJson) as Map<String, dynamic>);
+        // var responseData = await response.stream.bytesToString();
+        // var responseJson = json.decode(responseData);
+        return true;
       } else {
         throw Exception('Failed to save employees: ${response.reasonPhrase}');
       }
     } else {
-      Uri uri = Uri.file(baseImageUrl + file.path);
-
       final respImage = await http.get(Uri.parse(baseImageUrl + file.path));
       String filename = file.path.split('/').last;
 
@@ -110,10 +117,9 @@ Future<EmployeeModel> updateEmployee(
         http.StreamedResponse response = await request.send();
 
         if (response.statusCode == 200) {
-          var responseData = await response.stream.bytesToString();
-          var responseJson = json.decode(responseData);
-          return EmployeeModel.fromJson(
-              jsonDecode(responseJson) as Map<String, dynamic>);
+          // var responseData = await response.stream.bytesToString();
+          // var responseJson = json.decode(responseData);
+          return true;
         } else {
           throw Exception('Failed to save employees: ${response.reasonPhrase}');
         }

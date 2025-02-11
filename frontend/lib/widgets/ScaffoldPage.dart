@@ -23,7 +23,7 @@ class ScaffoldPage extends StatelessWidget {
         child: UnfocusOnTap(
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.green[50],
         appBar: bottom == null
             ? Appbar(title: title)
             : PreferredSize(

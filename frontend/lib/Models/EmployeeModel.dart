@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:frontend/Models/Designation.dart';
+
 class EmployeeModel {
   int id;
   String employeeCode;
@@ -10,8 +12,7 @@ class EmployeeModel {
   String? profileImage;
   String dateOfBirth;
   String dateOfJoining;
-  int designation;
-  String? designationName;
+  DesignationModel? designation;
   int port;
   String? portName;
   File? employeePhoto;
@@ -22,11 +23,10 @@ class EmployeeModel {
       required this.mobileNumber,
       required this.gender,
       required this.password,
-      required this.designation,
+      this.designation,
       this.profileImage,
       required this.dateOfBirth,
       required this.dateOfJoining,
-      this.designationName,
       required this.port,
       this.portName,
       this.employeePhoto});
@@ -44,11 +44,10 @@ class EmployeeModel {
         mobileNumber: json['mobile_number'],
         gender: json['gender'],
         password: json['password'],
-        designation: int.parse(json['designation'].toString()),
+        designation: DesignationModel.fromJson(json['designation']),
         profileImage: json['profile_image'],
         dateOfBirth: json['date_of_birth'],
         dateOfJoining: json['date_of_joining'],
-        designationName: json['designation_name'],
         port: int.parse(json['port'].toString()),
         portName: json['port_name'],
         employeePhoto: image);
@@ -61,11 +60,10 @@ class EmployeeModel {
         'mobile_number': mobileNumber,
         'gender': gender,
         'password': password,
-        'designation': designation.toString(),
+        'designation': designation?.toJson(),
         'profile_image': profileImage,
         'date_of_birth': dateOfBirth.toString(),
         'date_of_joining': dateOfJoining.toString(),
-        'designation_name': designationName,
         'port': port.toString(),
         'port_name': portName
       };

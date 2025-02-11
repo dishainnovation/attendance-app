@@ -7,6 +7,7 @@ import 'package:frontend/widgets/ScaffoldPage.dart';
 import 'Utility.dart';
 import 'widgets/Button.dart';
 import 'widgets/TextField.dart';
+import 'widgets/dropdown.dart';
 
 class Designation extends StatefulWidget {
   final DesignationModel? designation;
@@ -61,6 +62,27 @@ class _DesignationState extends State<Designation> {
                           return null;
                         },
                       ),
+                      DropDown(
+                        items: ['SUPER_ADMIN', 'ADMIN', 'USER'],
+                        initialItem: designation.user_type,
+                        title: 'Select Designation',
+                        onValueChanged: (value) {
+                          setState(() {
+                            designation.user_type = value;
+                          });
+                        },
+                      ),
+                      CheckboxListTile(
+                        title: Text('Remote Checkin'),
+                        subtitle:
+                            Text('Allow remote checkin for this designation'),
+                        value: designation.remote_checkin,
+                        onChanged: (value) {
+                          setState(() {
+                            designation.remote_checkin = value!;
+                          });
+                        },
+                      )
                     ],
                   ),
                 ),

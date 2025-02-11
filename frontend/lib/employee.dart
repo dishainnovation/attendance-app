@@ -2,9 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/Designation.dart';
+import 'package:frontend/Services/userNotifier.dart';
 import 'package:frontend/widgets/Button.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
-
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:provider/provider.dart';
 import 'Models/EmployeeModel.dart';
 import 'Models/PortModel.dart';
 import 'Services/designationService.dart';
@@ -38,9 +40,9 @@ class _EmployeeState extends State<Employee> {
       mobileNumber: '',
       gender: 'Male',
       password: '',
-      designation: 0,
-      dateOfBirth: DateTime.now().toString(),
-      dateOfJoining: DateTime.now().toString(),
+      designation: null,
+      dateOfBirth: formatDate(DateTime.now()),
+      dateOfJoining: formatDate(DateTime.now()),
       port: 0,
       portName: '');
 
@@ -50,6 +52,8 @@ class _EmployeeState extends State<Employee> {
     await getPort().then((ports) {
       setState(() {
         this.ports = ports;
+        employee.employeeCode =
+            generateEmployeeCode(ports[0].name, widget.employeeesList);
       });
     });
   }
@@ -58,6 +62,11 @@ class _EmployeeState extends State<Employee> {
     await getDesignations().then((designations) {
       setState(() {
         this.designations = designations;
+        setState(() {
+          DesignationModel designation =
+              getDesignationByName(designations[0].name, designations);
+          employee.designation = designation;
+        });
       });
     });
   }
@@ -75,11 +84,16 @@ class _EmployeeState extends State<Employee> {
 
   @override
   Widget build(BuildContext context) {
+    EmployeeModel user = context.read<User>().user!;
+    if (user.designation!.user_type != 'SUPER_ADMIN') {
+      employee.employeeCode =
+          generateEmployeeCode(user.portName!, widget.employeeesList);
+    }
     return ScaffoldPage(
       title: page,
       body: Stack(
         children: [
-          form(context, employee),
+          form(context, employee, user),
           _isSaving == true
               ? Positioned.fill(
                   child: LoadingWidget(message: 'Saving...'),
@@ -90,7 +104,8 @@ class _EmployeeState extends State<Employee> {
     );
   }
 
-  Widget form(BuildContext context, EmployeeModel employee) {
+  Widget form(
+      BuildContext context, EmployeeModel employee, EmployeeModel user) {
     return Form(
       key: formKey,
       child: Column(
@@ -122,30 +137,38 @@ class _EmployeeState extends State<Employee> {
                     },
                   ),
                   Text('Port'),
-                  ports.isNotEmpty
-                      ? DropDown(
-                          items: ports.map((port) => port.name).toList(),
-                          initialItem: employee.port == 0
-                              ? ports[0].name
-                              : employee.portName!,
-                          title: 'Select Port',
-                          onValueChanged: (value) {
-                            setState(() {
-                              PortModel port = getPortByName(value!, ports);
-                              employee.port = port.id;
-                              employee.portName = port.name;
-                              if (employee.id == 0) {
-                                employee.employeeCode = generateEmployeeCode(
-                                    port.name, widget.employeeesList);
-                              }
-                            });
-                          },
+                  user.designation?.user_type != 'SUPER_ADMIN'
+                      ? Textfield(
+                          label: 'Port',
+                          readOnly: true,
+                          controller:
+                              TextEditingController(text: user.portName),
                         )
-                      : Container(
-                          height: 50,
-                          width: double.infinity,
-                          color: Colors.grey[350],
-                        ),
+                      : ports.isNotEmpty
+                          ? DropDown(
+                              items: ports.map((port) => port.name).toList(),
+                              initialItem: employee.port == 0
+                                  ? user.portName
+                                  : employee.portName!,
+                              title: 'Select Port',
+                              onValueChanged: (value) {
+                                setState(() {
+                                  PortModel port = getPortByName(value!, ports);
+                                  employee.port = port.id;
+                                  employee.portName = port.name;
+                                  if (employee.id == 0) {
+                                    employee.employeeCode =
+                                        generateEmployeeCode(
+                                            port.name, widget.employeeesList);
+                                  }
+                                });
+                              },
+                            )
+                          : Container(
+                              height: 50,
+                              width: double.infinity,
+                              color: Colors.grey[350],
+                            ),
                   Text('Code'),
                   Textfield(
                     label: 'Code',
@@ -306,16 +329,15 @@ class _EmployeeState extends State<Employee> {
                           items: designations
                               .map((designation) => designation.name)
                               .toList(),
-                          initialItem: employee.designation == 0
+                          initialItem: employee.designation == null
                               ? designations[0].name
-                              : employee.designationName!,
+                              : employee.designation!.name,
                           title: 'Select Designation',
                           onValueChanged: (value) {
                             setState(() {
                               DesignationModel designation =
                                   getDesignationByName(value!, designations);
-                              employee.designation = designation.id;
-                              employee.designationName = designation.name;
+                              employee.designation = designation;
                             });
                           },
                         )
@@ -340,7 +362,11 @@ class _EmployeeState extends State<Employee> {
                               borderRadius: BorderRadius.circular(7),
                             ),
                             child: employee.employeePhoto == null
-                                ? Image.asset('assets/images/attendance.png')
+                                ? Icon(
+                                    Icons.image,
+                                    size: 200,
+                                    color: Colors.grey,
+                                  )
                                 : Image.network(
                                     baseImageUrl + employee.employeePhoto!.path,
                                     height: 200,
@@ -401,6 +427,11 @@ class _EmployeeState extends State<Employee> {
     if (!formKey.currentState!.validate()) {
       return;
     }
+    if (employee.employeePhoto == null) {
+      showSnackBar(
+          context, 'Employee', 'Please take a selfie.', ContentType.failure);
+      return;
+    }
     setState(() {
       _isSaving = true;
     });
@@ -410,15 +441,14 @@ class _EmployeeState extends State<Employee> {
         setState(() {
           _isSaving = false;
         });
-        showMessageDialog(context, page, 'Employee saved successfuly.');
+        showSnackBar(context, 'Employee', 'Employee saved successfuly.',
+            ContentType.success);
         Navigator.pop(context);
       }).catchError((err) {
         setState(() {
           _isSaving = false;
         });
-        showMessageDialog(context, page, err.toString());
-        Navigator.pop(context);
-        Navigator.pop(context);
+        showSnackBar(context, 'Employee', err.toString(), ContentType.failure);
       });
     } else {
       await updateEmployee(employee.id, employee, employee.employeePhoto!)
@@ -426,14 +456,14 @@ class _EmployeeState extends State<Employee> {
         setState(() {
           _isSaving = false;
         });
-        showMessageDialog(context, page, 'Employee updated successfuly.');
-        Navigator.pop(context);
+        showSnackBar(context, 'Employee', 'Employee updated successfuly.',
+            ContentType.success);
         Navigator.pop(context);
       }).catchError((err) {
         setState(() {
           _isSaving = false;
         });
-        showMessageDialog(context, page, err.toString());
+        showSnackBar(context, 'Employee', err.toString(), ContentType.failure);
       });
     }
   }

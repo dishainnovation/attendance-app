@@ -1,14 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:frontend/widgets/Button.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
-import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'Services/navigationService.dart';
-import 'Utility.dart';
+import 'Services/userNotifier.dart';
 import 'Models/EmployeeModel.dart';
-import 'checkIn.dart';
-import 'register.dart';
 import 'widgets/tile.dart';
 
 class HomePage extends StatefulWidget {
@@ -22,31 +17,31 @@ class _HomePageState extends State<HomePage> {
   double cardSize = 100;
   List<Widget> functionTiles = [];
   List<Widget> reportsTiles = [];
-  EmployeeModel? employee;
+  EmployeeModel? user;
 
   @override
   void initState() {
     super.initState();
-    getUserInfo().then((user) {
-      setState(() {
-        employee = user;
-      });
-    });
-    setTiles();
+    // getUserInfo().then((user) {
+    //   setState(() {
+    //     user = user;
+    //   });
+    // });
   }
 
   @override
   Widget build(BuildContext context) {
-    Size screenSize = MediaQuery.of(context).size;
+    user = context.read<User>().user!;
+    setTiles(context);
     return ScaffoldPage(
       title: 'Attendance Tracker',
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          employee == null
+          user == null
               ? Container()
               : Text(
-                  'Welcome ${employee!.name}',
+                  'Welcome ${user!.name}',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
           Container(
@@ -55,10 +50,10 @@ class _HomePageState extends State<HomePage> {
               borderRadius: BorderRadius.circular(5.0),
               color: Colors.green,
             ),
-            child: employee == null
+            child: user == null
                 ? Container()
                 : Text(
-                    employee!.designationName.toString(),
+                    user!.designation!.name.toString(),
                     style: TextStyle(
                       fontWeight: FontWeight.normal,
                       fontSize: 14,
@@ -109,19 +104,18 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  setTiles() {
+  setTiles(BuildContext context) {
     functionTiles = [
       Tile(
-        text: 'Employees',
-        color: Colors.green,
-        icon: Icon(
-          Icons.groups,
-          size: 50,
-          color: Colors.white,
-        ),
-        size: 100,
-        onTap: () => NavigationService.navigateTo('/employees-list'),
-      ),
+          text: 'Employees',
+          color: Colors.green,
+          icon: Icon(
+            Icons.groups,
+            size: 50,
+            color: Colors.white,
+          ),
+          size: 100,
+          onTap: () => NavigationService.navigateTo('/employees-list')),
       Tile(
         text: 'Terminals',
         color: Colors.deepOrange,

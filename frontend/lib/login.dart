@@ -1,11 +1,13 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:frontend/adminHome.dart';
+import 'package:frontend/Models/EmployeeModel.dart';
+import 'package:frontend/Services/userNotifier.dart';
 import 'package:frontend/screen.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'Utility.dart';
-import 'home.dart';
 import 'register.dart';
 import 'widgets/Button.dart';
 import 'widgets/TextField.dart';
@@ -23,7 +25,7 @@ class _LoginState extends State<Login> {
   TextEditingController userIdController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
-  onLogin() async {
+  onLogin(BuildContext context) async {
     if (userIdController.text.isEmpty) {
       showMessageDialog(context, 'Login', 'Please enter user id.');
       return false;
@@ -35,6 +37,7 @@ class _LoginState extends State<Login> {
 
     try {
       final user = await login(userIdController.text, passwordController.text);
+      context.read<User>().user = EmployeeModel.fromJson(user.toJson());
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.remove('user_data');
       await prefs.setString('user_data', json.encode(user.toJson()));
@@ -112,7 +115,9 @@ class _LoginState extends State<Login> {
                                   label: 'Login',
                                   width: 220,
                                   borderRadius: 30,
-                                  onPressed: onLogin,
+                                  onPressed: () {
+                                    onLogin(context);
+                                  },
                                 ),
                               ],
                             ),

@@ -92,3 +92,21 @@ Future<List<SiteModel>> getSitesByPort(int portId) async {
     throw Exception('Error occurred: $e');
   }
 }
+
+Future<SiteModel> getSiteByLocation(
+    int portId, double currentLatitude, double currentLongitude) async {
+  List<SiteModel> sites = await getSitesByPort(portId);
+  SiteModel site = sites.firstWhere((site) {
+    double distance = calculateDistance(
+        site.latitude, site.longitude, currentLatitude, currentLongitude);
+    return distance <= site.geoFenceArea;
+  },
+      orElse: () => SiteModel(
+          id: 0,
+          name: '',
+          latitude: 0.00,
+          longitude: 0.00,
+          port: 0,
+          geoFenceArea: 0));
+  return site;
+}

@@ -4,10 +4,17 @@ from rest_framework.response import Response
 from .models import Attendance
 from .serializers import AttendanceSerializer
 
-@api_view(['GET', 'POST'])
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def attendance_list(request):
     if request.method == 'GET':
         ports = Attendance.objects.all()
+        employee = request.GET.get('employee')
+        date = request.GET.get('date')
+        if(employee is not None and date is not None):
+            attendance_records = Attendance.objects.filter(employee=employee,attendance_date=date)
+            serializer = AttendanceSerializer(attendance_records, many=True)
+            return Response(serializer.data)
+
         serializer = AttendanceSerializer(ports, many=True)
         return Response(serializer.data)
 

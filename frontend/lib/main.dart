@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/login.dart';
 import 'package:frontend/splashScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:provider/provider.dart';
 import 'Services/RouteGenerator.dart';
 import 'Services/navigationService.dart';
-import 'adminHome.dart';
+import 'Services/userNotifier.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,7 +12,9 @@ Future<void> main() async {
   final String? data = prefs.getString('user_data');
 
   final bool isLoggedIn = data != null;
-  runApp(MyApp(isLoggedIn: isLoggedIn));
+
+  runApp(ChangeNotifierProvider(
+      create: (context) => User(), child: MyApp(isLoggedIn: isLoggedIn)));
 }
 
 class MyApp extends StatelessWidget {

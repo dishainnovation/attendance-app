@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from .models import Designation
 from .serializers import DesignationSerializer
 
-@api_view(['GET', 'POST'])
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def designation_list(request):
     if request.method == 'GET':
         ports = Designation.objects.all()

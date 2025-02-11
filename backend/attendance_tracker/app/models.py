@@ -2,6 +2,8 @@ from django.db import models
 
 class Designation(models.Model):
     name = models.CharField(max_length=100)
+    user_type = models.CharField(max_length=100, default='USER') # SUPER_ADMIN/ADMIN/USER
+    remote_checkin = models.BooleanField(default=False) # Allow user to check-in from anywhere
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -37,7 +39,7 @@ class Employee(models.Model):
             'mobile_number': self.mobile_number,
             'gender': self.gender,
             'password': self.password,
-            'designation': self.designation.id,
+            'designation': self.designation,
             'date_of_birth': self.date_of_birth,
             'date_of_joining': self.date_of_joining,
             'port': self.port.id,
@@ -64,6 +66,7 @@ class Shift(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 class Attendance(models.Model):
+    attendance_date = models.DateField(default=None)
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     site = models.ForeignKey(Site, on_delete=models.SET_NULL, null=True, blank=True)
     shift = models.ForeignKey(Shift, on_delete=models.CASCADE)
@@ -73,5 +76,6 @@ class Attendance(models.Model):
     longitude = models.FloatField(null=True, blank=True)
     check_in_photo = models.ImageField(upload_to='check_in_photo/')
     check_out_photo = models.ImageField(upload_to='check_out_photo/', blank=True, null=True)
+    attendance_type = models.CharField(max_length=20, default='REGULAR')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

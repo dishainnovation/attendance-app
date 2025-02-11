@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
-import 'package:frontend/Utility.dart';
+import 'package:frontend/Services/userNotifier.dart';
+import 'package:provider/provider.dart';
 import 'Services/navigationService.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 import 'package:frontend/widgets/tile.dart';
+
+import 'widgets/Button.dart';
 
 class AdminHome extends StatefulWidget {
   const AdminHome({super.key});
@@ -21,16 +24,12 @@ class _AdminHomeState extends State<AdminHome> {
   @override
   void initState() {
     super.initState();
-    getUserInfo().then((user) {
-      setState(() {
-        employee = user;
-      });
-    });
-    setTiles();
   }
 
   @override
   Widget build(BuildContext context) {
+    setTiles();
+    employee = context.read<User>().user!;
     Size screenSize = MediaQuery.of(context).size;
     return ScaffoldPage(
       title: 'Attendance Tracker',
@@ -68,49 +67,88 @@ class _AdminHomeState extends State<AdminHome> {
           ],
         ),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          employee == null
-              ? Container()
-              : Text(
-                  'Welcome ${employee!.name}',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      body: SizedBox(
+        height: screenSize.height * 0.88,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                employee == null
+                    ? Container()
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Welcome ${employee!.name}',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                          SizedBox(
+                            height: 5,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding:
+                                    const EdgeInsets.fromLTRB(14.0, 8, 14, 8),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  color: Colors.green[300],
+                                ),
+                                child: Text(
+                                  employee!.designation!.name.toString(),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              Button(
+                                label: 'Check In',
+                                color: Colors.blue,
+                                onPressed: () {
+                                  NavigationService.navigateTo('/check-in');
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                SizedBox(height: 30),
+                Divider(),
+                SizedBox(height: 10),
+                SizedBox(
+                  height: screenSize.height * (functionTiles.length - 1) / 10,
+                  width: screenSize.width,
+                  child: functionGrid(),
                 ),
-          Container(
-            padding: const EdgeInsets.all(5.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5.0),
-              color: Colors.green,
+                Divider(),
+                Text('Reports'),
+                SizedBox(height: 20),
+                SizedBox(
+                  height: screenSize.height * 0.3,
+                  width: screenSize.width,
+                  child: reportsGrid(),
+                ),
+              ],
             ),
-            child: employee == null
-                ? Container()
-                : Text(
-                    employee!.designationName.toString(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.normal,
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
-                  ),
-          ),
-          SizedBox(height: 30),
-          Divider(),
-          SizedBox(height: 10),
-          SizedBox(
-            height: screenSize.height * (functionTiles.length - 1) / 10,
-            width: screenSize.width,
-            child: functionGrid(),
-          ),
-          Divider(),
-          Text('Reports'),
-          SizedBox(height: 20),
-          SizedBox(
-            height: screenSize.height * 0.2,
-            width: screenSize.width,
-            child: reportsGrid(),
-          ),
-        ],
+            Container(
+              width: screenSize.width,
+              height: 20,
+              decoration: BoxDecoration(
+                color: Colors.green[900],
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(10),
+                  topRight: Radius.circular(10),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -130,12 +168,12 @@ class _AdminHomeState extends State<AdminHome> {
   }
 
   Widget reportsGrid() {
-    return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3, // Number of columns in the functionGrid
-        crossAxisSpacing: 10.0, // Space between columns
-        mainAxisSpacing: 10.0, // Space between rows
-      ),
+    return ListView.builder(
+      // gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+      //   crossAxisCount: 3, // Number of columns in the functionGrid
+      //   crossAxisSpacing: 10.0, // Space between columns
+      //   mainAxisSpacing: 10.0, // Space between rows
+      // ),
       itemCount: reportsTiles.length,
       itemBuilder: (context, index) {
         return reportsTiles[index];
@@ -191,15 +229,45 @@ class _AdminHomeState extends State<AdminHome> {
       ),
     ];
     reportsTiles = [
-      Tile(
-        text: 'Attendance',
-        color: Colors.lightBlueAccent,
-        icon: Icon(
-          Icons.calendar_month,
-          size: 50,
-          color: Colors.white,
+      Card(
+        elevation: 0,
+        color: Colors.white,
+        child: ListTile(
+          title: Text('Attendance'),
+          subtitle: Text(
+            'Monthly Report',
+            style: TextStyle(color: Colors.grey),
+          ),
+          leading: Icon(
+            Icons.calendar_month,
+            size: 40,
+            color: Colors.cyan[300],
+          ),
+          trailing: Icon(
+            Icons.arrow_circle_right,
+            color: Colors.grey,
+          ),
         ),
-        size: 100,
+      ),
+      Card(
+        elevation: 0,
+        color: Colors.white,
+        child: ListTile(
+          title: Text('Overtime'),
+          subtitle: Text(
+            'Monthly Report',
+            style: TextStyle(color: Colors.grey),
+          ),
+          leading: Icon(
+            Icons.calendar_today,
+            size: 40,
+            color: Colors.red[900],
+          ),
+          trailing: Icon(
+            Icons.arrow_circle_right,
+            color: Colors.grey,
+          ),
+        ),
       ),
     ];
   }
