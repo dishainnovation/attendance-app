@@ -1,20 +1,22 @@
 import 'dart:convert';
+import 'package:frontend/Utility.dart';
 import 'package:http/http.dart' as http;
 
 import '../Models/EmployeeModel.dart';
 
 // String url = "${dotenv.env['API_URL']}login/";
-String url = 'http://192.168.0.101:8000/login';
+String url = '${baseUrl}login/';
 
-Future<Employeemodel> login(String userId, String password) async {
+Future<EmployeeModel> login(String userId, String password) async {
   try {
-    final uri = Uri.parse('$url?user_id=$userId&password=$password');
+    final uri = Uri.parse('$url?employee_code=$userId&password=$password');
     final response =
         await http.get(uri, headers: {"Accept": "application/json"});
 
     if (response.statusCode == 200) {
-      return Employeemodel.fromJson(
-          jsonDecode(response.body) as Map<String, dynamic>);
+      Map<String, dynamic> data =
+          jsonDecode(response.body) as Map<String, dynamic>;
+      return EmployeeModel.fromJson(data);
     } else {
       throw Exception('Failed to login');
     }

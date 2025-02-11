@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/login.dart';
+import 'package:frontend/splashScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'home.dart';
+import 'Services/RouteGenerator.dart';
+import 'Services/navigationService.dart';
+import 'adminHome.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,13 +23,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: NavigationService.navigatorKey,
+      initialRoute: '/',
+      onGenerateRoute: RouteGenerator.generateRoute,
       debugShowCheckedModeBanner: false,
       title: 'Attendance Tracker',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: isLoggedIn ? const HomePage() : Login(),
+      home: Splashscreen(isLoggedIn: isLoggedIn),
     );
   }
 }

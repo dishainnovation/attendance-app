@@ -6,9 +6,13 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math' as math;
+
+String baseUrl = 'http://192.168.0.100:8000/api/';
+String baseImageUrl = 'http://192.168.0.100:8000';
 
 Future<void> save(String name, double distance, File? image1) async {
   final position = await getCurrentLocation();
@@ -147,6 +151,7 @@ Future<void> showMessageDialog(context, String title, String message) async {
             child: const Text('OK'),
             onPressed: () {
               Navigator.of(context).pop();
+              return;
             },
           ),
         ],
@@ -155,13 +160,18 @@ Future<void> showMessageDialog(context, String title, String message) async {
   );
 }
 
-Future<Employeemodel?> getUserInfo() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  final data = prefs.getString('user_data');
-  if (data != null) {
-    final user = Employeemodel.fromJson(json.decode(data));
-    return user;
-  } else {
+Future<EmployeeModel?> getUserInfo() async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final data = prefs.getString('user_data');
+    if (data != null) {
+      final user = EmployeeModel.fromJson(jsonDecode(data));
+      return user;
+    } else {
+      return null;
+    }
+  } catch (e) {
+    print(e);
     return null;
   }
 }
@@ -169,4 +179,19 @@ Future<Employeemodel?> getUserInfo() async {
 Future<bool> logout() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   return prefs.remove('user_data');
+}
+
+String formatTimeOfDay(TimeOfDay timeOfDay, BuildContext context) {
+  final localizations = MaterialLocalizations.of(context);
+  return localizations.formatTimeOfDay(timeOfDay, alwaysUse24HourFormat: false);
+}
+
+TimeOfDay stringToTimeOfDay(String time) {
+  final format = DateFormat.Hms(); // Use DateFormat.Hm() for "08:00"
+  final dateTime = format.parse(time);
+  return TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
+}
+
+String formatDate(DateTime date) {
+  return DateFormat("yyyy-MM-dd").format(date);
 }

@@ -1,42 +1,72 @@
-class Employeemodel {
+import 'dart:io';
+
+class EmployeeModel {
   int id;
-  String userId;
+  String employeeCode;
   String name;
   String password;
-  String phone;
-  String email;
-  String role;
-  String profileImage;
-  Employeemodel(
+  String mobileNumber;
+  String gender;
+  String? profileImage;
+  String dateOfBirth;
+  String dateOfJoining;
+  int designation;
+  String? designationName;
+  int port;
+  String? portName;
+  File? employeePhoto;
+  EmployeeModel(
       {required this.id,
-      required this.userId,
+      required this.employeeCode,
       required this.name,
-      required this.phone,
-      required this.email,
+      required this.mobileNumber,
+      required this.gender,
       required this.password,
-      required this.role,
-      required this.profileImage});
+      required this.designation,
+      this.profileImage,
+      required this.dateOfBirth,
+      required this.dateOfJoining,
+      this.designationName,
+      required this.port,
+      this.portName,
+      this.employeePhoto});
 
-  factory Employeemodel.fromJson(Map<String, dynamic> json) {
-    return Employeemodel(
-        id: json['id'],
-        userId: json['user_id'],
+  factory EmployeeModel.fromJson(Map<String, dynamic> json) {
+    File? image;
+    if (json['profile_image'] != null) {
+      image = File(json['profile_image']);
+    }
+
+    return EmployeeModel(
+        id: int.parse(json['id'].toString()),
+        employeeCode: json['employee_code'],
         name: json['name'],
-        phone: json['phone'],
-        email: json['email'],
+        mobileNumber: json['mobile_number'],
+        gender: json['gender'],
         password: json['password'],
-        role: json['role'],
-        profileImage: json['profile_image']);
+        designation: int.parse(json['designation'].toString()),
+        profileImage: json['profile_image'],
+        dateOfBirth: json['date_of_birth'],
+        dateOfJoining: json['date_of_joining'],
+        designationName: json['designation_name'],
+        port: int.parse(json['port'].toString()),
+        portName: json['port_name'],
+        employeePhoto: image);
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'user_id': userId,
+        'id': id.toString(),
+        'employee_code': employeeCode,
         'name': name,
-        'phone': phone,
-        'email': email,
+        'mobile_number': mobileNumber,
+        'gender': gender,
         'password': password,
-        'role': role,
-        'profile_image': profileImage
+        'designation': designation.toString(),
+        'profile_image': profileImage,
+        'date_of_birth': dateOfBirth.toString(),
+        'date_of_joining': dateOfJoining.toString(),
+        'designation_name': designationName,
+        'port': port.toString(),
+        'port_name': portName
       };
 }

@@ -1,13 +1,15 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/widgets/Button.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 import 'package:intl/intl.dart';
+import 'Services/navigationService.dart';
 import 'Utility.dart';
 import 'Models/EmployeeModel.dart';
 import 'checkIn.dart';
+import 'register.dart';
+import 'widgets/tile.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,133 +19,132 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  Employeemodel? user;
-  String locationName = '';
-  String time = '';
-  Timer? _timer;
-  int _start = 10;
-  //DateFormat("HH:mm a").format(DateTime.now())
-
-  void startTimer() {
-    const oneSec = const Duration(seconds: 1);
-    _timer = Timer.periodic(
-      oneSec,
-      (Timer timer) {
-        setState(() {
-          time = DateFormat("hh:mm:ss a").format(DateTime.now());
-        });
-      },
-    );
-  }
-
-  getLocation() async {
-    await getCurrentLocation().then((location) async {
-      await getLocationName(location).then((value) => setState(() {
-            locationName = value;
-          }));
-    });
-  }
-
-  getUserData() async {
-    await getUserInfo().then((value) => setState(() {
-          user = value;
-        }));
-  }
+  double cardSize = 100;
+  List<Widget> functionTiles = [];
+  List<Widget> reportsTiles = [];
+  EmployeeModel? employee;
 
   @override
   void initState() {
     super.initState();
-    startTimer();
-    getLocation();
-    getUserData();
+    getUserInfo().then((user) {
+      setState(() {
+        employee = user;
+      });
+    });
+    setTiles();
   }
 
   @override
   Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
     return ScaffoldPage(
-      title: user != null ? user!.name : 'Home',
-      body: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(children: [
-          Text('Location: $locationName'),
-          SizedBox(height: 40),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Card(
-                color: Colors.green,
-                child: Container(
-                  height: 100,
-                  width: 100,
-                  child: Icon(
-                    Icons.person,
-                    size: 40,
-                    color: Colors.white,
-                  ),
+      title: 'Attendance Tracker',
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          employee == null
+              ? Container()
+              : Text(
+                  'Welcome ${employee!.name}',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-              ),
-              Card(
-                color: Colors.blue,
-                child: Container(
-                  height: 100,
-                  width: 100,
-                  child: Icon(
-                    Icons.calendar_month_outlined,
-                    size: 40,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              Card(
-                color: Colors.deepOrange,
-                child: Container(
-                  height: 100,
-                  width: 100,
-                  child: Icon(
-                    Icons.calendar_today_outlined,
-                    size: 40,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 40),
-          Card(
-            color: Colors.purpleAccent,
-            child: SizedBox(
-              height: 100,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    time,
-                    style: TextStyle(
-                        fontSize: 35,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(height: 40),
-          Button(
-              label: 'Check-In',
+          Container(
+            padding: const EdgeInsets.all(5.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5.0),
               color: Colors.green,
-              width: 200,
-              onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => CheckIn()));
-              }),
-        ]),
+            ),
+            child: employee == null
+                ? Container()
+                : Text(
+                    employee!.designationName.toString(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.normal,
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+          ),
+          SizedBox(height: 30),
+          Divider(),
+          SizedBox(height: 10),
+          functionGrid(),
+          Divider(),
+          Text('Reports'),
+          SizedBox(height: 20),
+          reportsGrid(),
+        ],
       ),
     );
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
+  Widget functionGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3, // Number of columns in the functionGrid
+        crossAxisSpacing: 10.0, // Space between columns
+        mainAxisSpacing: 10.0, // Space between rows
+      ),
+      itemCount: functionTiles.length,
+      itemBuilder: (context, index) {
+        return functionTiles[index];
+      },
+    );
+  }
+
+  Widget reportsGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3, // Number of columns in the functionGrid
+        crossAxisSpacing: 10.0, // Space between columns
+        mainAxisSpacing: 10.0, // Space between rows
+      ),
+      itemCount: reportsTiles.length,
+      itemBuilder: (context, index) {
+        return reportsTiles[index];
+      },
+    );
+  }
+
+  setTiles() {
+    functionTiles = [
+      Tile(
+        text: 'Employees',
+        color: Colors.green,
+        icon: Icon(
+          Icons.groups,
+          size: 50,
+          color: Colors.white,
+        ),
+        size: 100,
+        onTap: () => NavigationService.navigateTo('/employees-list'),
+      ),
+      Tile(
+        text: 'Terminals',
+        color: Colors.deepOrange,
+        icon: Icon(
+          Icons.account_tree_outlined,
+          size: 50,
+          color: Colors.white,
+        ),
+        size: 100,
+        onTap: () => NavigationService.navigateTo('/terminals-list'),
+      ),
+    ];
+    reportsTiles = [
+      Tile(
+        text: 'Attendance',
+        color: Colors.lightBlueAccent,
+        icon: Icon(
+          Icons.calendar_month,
+          size: 50,
+          color: Colors.white,
+        ),
+        size: 100,
+      ),
+    ];
   }
 }

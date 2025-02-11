@@ -8,19 +8,25 @@ class Appbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final Widget? leading;
   final List<Widget>? actions;
-  const Appbar({super.key, required this.title, this.actions, this.leading});
+  final PreferredSizeWidget? bottom;
+  const Appbar(
+      {super.key,
+      required this.title,
+      this.actions,
+      this.leading,
+      this.bottom});
   @override
   Size get preferredSize => Size.fromHeight(kToolbarHeight);
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: CupertinoColors.activeBlue,
+      backgroundColor: Colors.green[900],
       automaticallyImplyLeading: true,
       title: Row(
         children: [
-          Icon(
-            Icons.calendar_month_outlined,
-            size: 34,
+          Image.asset(
+            'assets/images/attendance.png',
+            width: 30,
           ),
           SizedBox(width: 10),
           Text(title),
@@ -30,15 +36,17 @@ class Appbar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: false,
       iconTheme: Theme.of(context).iconTheme.copyWith(color: Colors.white),
       leading: leading,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(0),
-          bottomRight: Radius.circular(80),
-        ),
-      ),
+      shape: bottom != null
+          ? null
+          : const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(0),
+                bottomRight: Radius.circular(80),
+              ),
+            ),
       actions: [
         InkWell(
-          child: Icon(Icons.logout),
+          child: Image.asset('assets/images/logout.png', width: 30),
           onTap: () async {
             await logout().then((onValue) {
               if (onValue) {
@@ -52,6 +60,7 @@ class Appbar extends StatelessWidget implements PreferredSizeWidget {
         ),
         SizedBox(width: 20),
       ],
+      bottom: bottom,
     );
   }
 }
