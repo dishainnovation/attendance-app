@@ -17,17 +17,20 @@ class Button extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoButton(
-      sizeStyle: CupertinoButtonSize.medium,
-      borderRadius: BorderRadius.circular(borderRadius),
-      onPressed: onPressed,
-      color: color,
-      child: SizedBox(
-        width: width,
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(color: Colors.white),
+    return Card(
+      child: CupertinoButton(
+        sizeStyle: CupertinoButtonSize.medium,
+        borderRadius: BorderRadius.circular(borderRadius),
+        onPressed: onPressed,
+        color: color,
+        disabledColor: Colors.green[100]!,
+        child: SizedBox(
+          width: width,
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ),
       ),

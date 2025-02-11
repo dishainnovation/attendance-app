@@ -1,14 +1,19 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend/Models/UserModel.dart';
+import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math' as math;
+
+String baseUrl = 'http://192.168.0.100:8000/api/';
+String baseImageUrl = 'http://192.168.0.100:8000';
 
 Future<void> save(String name, double distance, File? image1) async {
   final position = await getCurrentLocation();
@@ -41,12 +46,6 @@ Future<File?> captureImage() async {
   } else {
     return File('');
   }
-}
-
-Future get() async {
-  var request = http.get(Uri.parse("http://192.168.0.100:5000/hello"));
-  var response = await request;
-  return response.body;
 }
 
 Future compareImages(File? image1, File? image2) async {
@@ -147,6 +146,7 @@ Future<void> showMessageDialog(context, String title, String message) async {
             child: const Text('OK'),
             onPressed: () {
               Navigator.of(context).pop();
+              return;
             },
           ),
         ],
@@ -155,13 +155,18 @@ Future<void> showMessageDialog(context, String title, String message) async {
   );
 }
 
-Future<UserModel?> getUserInfo() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  final data = prefs.getString('user_data');
-  if (data != null) {
-    final user = UserModel.fromJson(json.decode(data));
-    return user;
-  } else {
+Future<EmployeeModel?> getUserInfo() async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final data = prefs.getString('user_data');
+    if (data != null) {
+      final user = EmployeeModel.fromJson(jsonDecode(data));
+      return user;
+    } else {
+      return null;
+    }
+  } catch (e) {
+    print(e);
     return null;
   }
 }
@@ -169,4 +174,46 @@ Future<UserModel?> getUserInfo() async {
 Future<bool> logout() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   return prefs.remove('user_data');
+}
+
+String formatTimeOfDay(TimeOfDay timeOfDay, BuildContext context) {
+  final localizations = MaterialLocalizations.of(context);
+  return localizations.formatTimeOfDay(timeOfDay, alwaysUse24HourFormat: false);
+}
+
+TimeOfDay stringToTimeOfDay(String time) {
+  final format = DateFormat.Hms(); // Use DateFormat.Hm() for "08:00"
+  final dateTime = format.parse(time);
+  return TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
+}
+
+String formatDate(DateTime date) {
+  return DateFormat("yyyy-MM-dd").format(date);
+}
+
+String displayDate(DateTime date) {
+  return DateFormat("dd-MM-yyyy").format(date);
+}
+
+showSnackBar(BuildContext context, String title, String message,
+    ContentType contentType) {
+  var materialBanner = MaterialBanner(
+    elevation: 0,
+    backgroundColor: Colors.transparent,
+    forceActionsBelow: true,
+    content: AwesomeSnackbarContent(
+      title: title,
+      message: message,
+
+      /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
+      contentType: contentType,
+      // to configure for material banner
+      inMaterialBanner: true,
+    ),
+    actions: const [SizedBox.shrink()],
+  );
+
+  ScaffoldMessenger.of(context)
+    ..hideCurrentMaterialBanner()
+    ..showMaterialBanner(materialBanner);
 }
