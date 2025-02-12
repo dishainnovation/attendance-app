@@ -10,6 +10,13 @@ class ShiftViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Shift.objects.all()
         port_id = self.request.query_params.get('port_id', None)
+        shift_id = self.request.query_params.get('id', None)
+        if shift_id:
+            try:
+                shift_id = int(shift_id)
+                queryset = queryset.filter(id=shift_id)
+            except ValueError:
+                pass
         if port_id:
             try:
                 port_id = int(port_id)
@@ -18,3 +25,17 @@ class ShiftViewSet(viewsets.ModelViewSet):
                 pass
         return queryset
     
+@api_view(['GET'])
+def shift_view(request):
+    if request.method == 'GET':
+        try:
+            id = request.GET.get('id')
+            shift = Shift.objects.get(id=id)
+        except Shift.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        if shift is not None:
+            return Response(shift, safe=False)
+           
+        else:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)

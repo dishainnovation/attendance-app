@@ -117,8 +117,6 @@ Future<bool> updateEmployee(int id, EmployeeModel employee, File file) async {
         http.StreamedResponse response = await request.send();
 
         if (response.statusCode == 200) {
-          // var responseData = await response.stream.bytesToString();
-          // var responseJson = json.decode(responseData);
           return true;
         } else {
           throw Exception('Failed to save employees: ${response.reasonPhrase}');

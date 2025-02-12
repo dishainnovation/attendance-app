@@ -16,7 +16,7 @@ urlpatterns = [
     path('employee/<int:id>/', employee_view.employee_view),
 
     path('port/', port_view.port_list),
-
+    path('shift/<int:id>/', shift_view.shift_view),
     # path('site/', site_view.SiteViewSet.as_view()),
     path('', include(router.urls)),
 

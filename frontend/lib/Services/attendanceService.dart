@@ -1,38 +1,76 @@
 import 'dart:convert';
-
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:mime/mime.dart';
+import 'package:http_parser/http_parser.dart';
 import '../Models/AttendanceModel.dart';
 import '../Utility.dart';
 import 'package:http/http.dart' as http;
 
-String url = '${baseUrl}designation/';
+String url = '${baseUrl}attendance/';
 final uri = Uri.parse(url);
 
-Future<AttendanceModel> createAttendance(AttendanceModel attendance) async {
+Future<bool> createAttendance(AttendanceModel attendance, File file) async {
   try {
-    var request = await http.post(uri, body: attendance.toJson());
+    var request = http.MultipartRequest('POST', uri);
 
-    if (request.statusCode == 201) {
-      return AttendanceModel.fromJson(
-          jsonDecode(request.body) as Map<String, dynamic>);
+    attendance.toJson().forEach((key, value) {
+      request.fields[key] = value.toString();
+    });
+
+    final mimeTypeData =
+        lookupMimeType(file.path, headerBytes: [0xFF, 0xD8])?.split('/');
+
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'user_photo',
+        file.path,
+        contentType: MediaType(mimeTypeData![0], mimeTypeData[1]),
+      ),
+    );
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 201) {
+      return true;
     } else {
-      throw Exception('Failed to save attendance: ${request.reasonPhrase}');
+      throw Exception('Failed to save attendances: ${response.reasonPhrase}');
     }
   } catch (e) {
+    if (kDebugMode) {
+      print(e);
+    }
     throw Exception('Error occurred: $e');
   }
 }
 
-Future<AttendanceModel> updateAttendance(
-    int id, AttendanceModel attendance) async {
+Future<bool> updateAttendance(
+    int id, AttendanceModel attendance, File file) async {
   try {
-    Uri uriPut = Uri.parse('$url$id/');
-    var request = await http.put(uriPut, body: attendance.toJson());
+    Uri uriPut = Uri.parse('$url?id=$id');
+    var request = http.MultipartRequest('PUT', uriPut);
 
-    if (request.statusCode == 200) {
-      return AttendanceModel.fromJson(
-          jsonDecode(request.body) as Map<String, dynamic>);
+    attendance.toJson().forEach((key, value) {
+      request.fields[key] = value.toString();
+    });
+
+    final mimeTypeData =
+        lookupMimeType(file.path, headerBytes: [0xFF, 0xD8])?.split('/');
+
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'user_photo',
+        file.path,
+        contentType: MediaType(mimeTypeData![0], mimeTypeData[1]),
+      ),
+    );
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 201) {
+      return true;
     } else {
-      throw Exception('Failed to save attendance: ${request.reasonPhrase}');
+      throw Exception('Failed to save attendances: ${response.reasonPhrase}');
     }
   } catch (e) {
     throw Exception('Error occurred: $e');
@@ -46,10 +84,10 @@ Future<List<AttendanceModel>> getAttendance() async {
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
-      List<AttendanceModel> employees = data.map((emp) {
+      List<AttendanceModel> attendances = data.map((emp) {
         return AttendanceModel.fromJson(emp as Map<String, dynamic>);
       }).toList();
-      return employees;
+      return attendances;
     } else {
       throw Exception('Failed to load attendance: ${response.reasonPhrase}');
     }
@@ -59,21 +97,21 @@ Future<List<AttendanceModel>> getAttendance() async {
 }
 
 Future<List<AttendanceModel>> getEmployeeAttendance(
-    int employeeId, DateTime? date) async {
+    int attendanceId, String? date) async {
   try {
-    Uri uri = Uri.parse('$url?employee=$employeeId');
+    Uri uri = Uri.parse('$url?attendance=$attendanceId');
     if (date != null) {
-      uri = Uri.parse('$url?employee=$employeeId&date=$date');
+      uri = Uri.parse('$url?attendance=$attendanceId&date=$date');
     }
     final response =
         await http.get(uri, headers: {"Accept": "application/json"});
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
-      List<AttendanceModel> employees = data.map((emp) {
+      List<AttendanceModel> attendances = data.map((emp) {
         return AttendanceModel.fromJson(emp as Map<String, dynamic>);
       }).toList();
-      return employees;
+      return attendances;
     } else {
       throw Exception('Failed to load attendance: ${response.reasonPhrase}');
     }

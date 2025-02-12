@@ -32,11 +32,9 @@ class ScaffoldPage extends StatelessWidget {
               ),
         drawer: drawer,
         floatingActionButton: floatingButton,
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(12.0),
-            child: body,
-          ),
+        body: Padding(
+          padding: EdgeInsets.all(12.0),
+          child: body,
         ),
       ),
     ));

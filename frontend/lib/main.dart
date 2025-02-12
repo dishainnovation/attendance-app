@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/splashScreen.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'Services/RouteGenerator.dart';
@@ -29,11 +30,16 @@ class MyApp extends StatelessWidget {
       onGenerateRoute: RouteGenerator.generateRoute,
       debugShowCheckedModeBanner: false,
       title: 'Attendance Tracker',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: _buildTheme(Brightness.light),
       home: Splashscreen(isLoggedIn: isLoggedIn),
+    );
+  }
+
+  ThemeData _buildTheme(brightness) {
+    var baseTheme = ThemeData(brightness: brightness);
+
+    return baseTheme.copyWith(
+      textTheme: GoogleFonts.nunitoTextTheme(baseTheme.textTheme),
     );
   }
 }

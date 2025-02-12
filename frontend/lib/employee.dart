@@ -91,15 +91,17 @@ class _EmployeeState extends State<Employee> {
     }
     return ScaffoldPage(
       title: page,
-      body: Stack(
-        children: [
-          form(context, employee, user),
-          _isSaving == true
-              ? Positioned.fill(
-                  child: LoadingWidget(message: 'Saving...'),
-                )
-              : Container(),
-        ],
+      body: SingleChildScrollView(
+        child: Stack(
+          children: [
+            form(context, employee, user),
+            _isSaving == true
+                ? Positioned.fill(
+                    child: LoadingWidget(message: 'Saving...'),
+                  )
+                : Container(),
+          ],
+        ),
       ),
     );
   }

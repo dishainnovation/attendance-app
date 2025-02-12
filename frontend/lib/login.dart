@@ -41,7 +41,7 @@ class _LoginState extends State<Login> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.remove('user_data');
       await prefs.setString('user_data', json.encode(user.toJson()));
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => Screen()),
       );
