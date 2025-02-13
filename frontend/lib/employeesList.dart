@@ -94,8 +94,7 @@ class _EmployeesListState extends State<EmployeesList> {
         child: Icon(Icons.add, color: Colors.white),
       ),
       body: SizedBox(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height * 0.8,
+        height: MediaQuery.of(context).size.height - 231,
         child: ListView.builder(
             itemCount: filteredEmployeesList.length,
             itemBuilder: (context, index) {

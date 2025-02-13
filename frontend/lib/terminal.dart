@@ -67,7 +67,7 @@ class _TerminalState extends State<Terminal> {
     return ScaffoldPage(
       title: 'Terminal',
       body: SizedBox(
-        height: MediaQuery.of(context).size.height,
+        height: MediaQuery.of(context).size.height - 170,
         child: Stack(
           children: [
             form(site),
@@ -88,7 +88,7 @@ class _TerminalState extends State<Terminal> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 40),
+          SizedBox(height: 10),
           Card(
             color: Colors.white,
             child: Padding(

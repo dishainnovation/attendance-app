@@ -62,7 +62,7 @@ class _ShiftState extends State<Shift> {
     return ScaffoldPage(
       title: page,
       body: Container(
-        height: MediaQuery.of(context).size.height,
+        // height: MediaQuery.of(context).size.height,
         child: Stack(
           children: [
             form(context, shift),
@@ -83,7 +83,7 @@ class _ShiftState extends State<Shift> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 40),
+          SizedBox(height: 10),
           Card(
             color: Colors.white,
             child: Padding(

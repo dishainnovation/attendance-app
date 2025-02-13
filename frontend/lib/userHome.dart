@@ -14,7 +14,6 @@ import 'attendance.dart';
 import 'register.dart';
 import 'widgets/Button.dart';
 import 'widgets/ScaffoldPage.dart';
-import 'widgets/tile.dart';
 
 class UserHome extends StatefulWidget {
   const UserHome({super.key});
@@ -63,6 +62,9 @@ class _UserHomeState extends State<UserHome> {
         });
       });
     }
+    setState(() {
+      attendance = tempAttendance;
+    });
     return tempAttendance;
   }
 
@@ -76,7 +78,7 @@ class _UserHomeState extends State<UserHome> {
 
     double percentageElapsed =
         elapsedDuration.inMinutes / totalDuration.inMinutes;
-    return percentageElapsed;
+    return percentageElapsed > 1 ? 1 : percentageElapsed;
   }
 
   DateTime _timeOfDayToDateTime(TimeOfDay timeOfDay) {
@@ -90,11 +92,7 @@ class _UserHomeState extends State<UserHome> {
     super.initState();
     user = context.read<User>().user;
     getLocation();
-    getAttendance().then((att) {
-      setState(() {
-        attendance = att;
-      });
-    });
+    getAttendance();
   }
 
   @override
@@ -119,20 +117,21 @@ class _UserHomeState extends State<UserHome> {
                           ? shiftCard(shift!)
                           : Container(),
                   SizedBox(height: 40),
-                  LinearPercentIndicator(
-                    animation: true,
-                    barRadius: Radius.circular(10),
-                    width: MediaQuery.of(context).size.width * 0.65,
-                    lineHeight: 30.0,
-                    percent: percentageDone,
-                    backgroundColor: Colors.grey[400],
-                    progressColor: Colors.green,
-                    leading: shift != null
-                        ? Text(shift!.startTime!.format(context))
-                        : Container(),
-                    trailing: shift != null
-                        ? Text(shift!.endTime!.format(context))
-                        : Container(),
+                  Center(
+                    child: LinearPercentIndicator(
+                      animation: true,
+                      barRadius: Radius.circular(10),
+                      lineHeight: 30.0,
+                      percent: percentageDone,
+                      backgroundColor: Colors.grey[400],
+                      progressColor: Colors.green,
+                      leading: shift != null
+                          ? Text(shift!.startTime!.format(context))
+                          : Container(),
+                      trailing: shift != null
+                          ? Text(shift!.endTime!.format(context))
+                          : Container(),
+                    ),
                   ),
                   SizedBox(height: 40),
                   Button(
@@ -140,8 +139,12 @@ class _UserHomeState extends State<UserHome> {
                     color: Colors.green,
                     width: 200,
                     onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => CheckIn()));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => CheckIn())).then((result) {
+                        getAttendance();
+                      });
                     },
                   ),
                 ],

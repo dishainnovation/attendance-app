@@ -16,7 +16,9 @@ def attendance_list(request):
         date = request.GET.get('date')
         if(employee is not None and date is not None):
             attendance_records = Attendance.objects.filter(employee=employee,attendance_date=date)
+            
             serializer = AttendanceSerializer(attendance_records, many=True)
+            print(serializer.data)
             return Response(serializer.data)
 
         serializer = AttendanceSerializer(ports, many=True)

@@ -33,8 +33,24 @@ class ScaffoldPage extends StatelessWidget {
         drawer: drawer,
         floatingActionButton: floatingButton,
         body: Padding(
-          padding: EdgeInsets.all(12.0),
-          child: body,
+          padding: EdgeInsets.fromLTRB(12.0, 12.0, 12.0, 0.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              body,
+              Container(
+                width: MediaQuery.of(context).size.width,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: Colors.green[900],
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(10),
+                    topRight: Radius.circular(10),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     ));

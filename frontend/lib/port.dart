@@ -42,7 +42,7 @@ class _PortState extends State<Port> {
     return ScaffoldPage(
       title: 'Port',
       body: SizedBox(
-        height: MediaQuery.of(context).size.height,
+        height: MediaQuery.of(context).size.height - 170,
         child: Stack(children: [
           form(port),
           isSaving ? LoadingWidget() : Container(),
@@ -57,7 +57,7 @@ class _PortState extends State<Port> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 40),
+          SizedBox(height: 10),
           Card(
             color: Colors.white,
             child: Padding(

@@ -82,10 +82,10 @@ class _ShiftsListState extends State<ShiftsList> {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             if (snapshot.data!.isEmpty) {
-              return Center(child: Text('No ports found'));
+              return Center(child: Text('No shift found'));
             }
             return SizedBox(
-              height: MediaQuery.of(context).size.height * 0.8,
+              height: MediaQuery.of(context).size.height - 231,
               child: ListView.builder(
                   itemCount: snapshot.data!.length,
                   itemBuilder: (context, index) {
@@ -95,7 +95,9 @@ class _ShiftsListState extends State<ShiftsList> {
           } else if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
           } else {
-            return Center(child: CircularProgressIndicator());
+            return Center(
+              child: Text('Select Port'),
+            );
           }
         },
       ),
