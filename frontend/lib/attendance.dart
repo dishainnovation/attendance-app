@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/AttendanceModel.dart';
+import 'package:frontend/Models/ErrorObject.dart';
 import 'package:frontend/Models/SiteModel.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'Models/EmployeeModel.dart';
@@ -26,9 +26,8 @@ class CheckIn extends StatefulWidget {
 }
 
 class _CheckInState extends State<CheckIn> {
+  ErrorObject error = ErrorObject(title: '', message: '');
   bool _isSaving = false;
-  String time = '';
-  Timer? _timer;
   String locationName = '';
   ShiftModel? shift;
   SiteModel? site;
@@ -43,18 +42,7 @@ class _CheckInState extends State<CheckIn> {
   String checkIn = "CHeck-In";
   String attendanceStatus = 'CHECK_IN';
   bool openAttendance = false;
-
-  void startTimer() {
-    const oneSec = Duration(seconds: 1);
-    _timer = Timer.periodic(
-      oneSec,
-      (Timer timer) {
-        setState(() {
-          time = DateFormat('hh:mm:ss a').format(DateTime.now());
-        });
-      },
-    );
-  }
+  bool allowCheckOut = false;
 
   getLocation() async {
     await getCurrentLocation().then((location) async {
@@ -65,6 +53,8 @@ class _CheckInState extends State<CheckIn> {
       await getLocationName(location).then((value) => setState(() {
             locationName = value;
           }));
+    }).catchError((err) {
+      throw Exception('Location permission not granted');
     });
   }
 
@@ -113,70 +103,92 @@ class _CheckInState extends State<CheckIn> {
             checkInPhoto: null,
             attendanceType: 'REGULAR');
       }
+    }).catchError((err) {
+      tempAttendance = AttendanceModel(
+          id: 0,
+          attendanceDate: DateTime.now(),
+          employeeId: user.id,
+          shiftId: shift?.id,
+          siteId: site?.id,
+          checkInTime: DateTime.now(),
+          checkInPhoto: null,
+          attendanceType: 'REGULAR');
     });
     return tempAttendance;
   }
 
   getData() async {
-    ShiftModel? tempShift;
-    SiteModel? tempSite;
-    bool tempInTerminal = true;
-    bool tempSiteLoaded = false;
-    AttendanceModel? tempAttendance;
+    try {
+      ShiftModel? tempShift;
+      SiteModel? tempSite;
+      bool tempInTerminal = true;
+      bool tempSiteLoaded = false;
+      AttendanceModel? tempAttendance;
 
-    setState(() {
-      isLoading = true;
-    });
-    EmployeeModel user = context.read<User>().user!;
-    await getLocation();
-    await getSiteByLocation(user.port, latitude!, longitude!)
-        .then((site) async {
-      tempSite = site;
-      tempInTerminal = site.id != 0;
-      tempSiteLoaded = true;
-    });
-    await getCurrentShift(user.port, TimeOfDay.now()).then((shift) async {
-      tempShift = shift;
-    });
-    tempAttendance = await getAttendance();
-    if (tempAttendance!.attendanceType == 'OVERTIME' &&
-        tempAttendance.id == 0) {
-      await showAlertDialog(context, 'Overtime',
-              "You've wrapped up for the day. Would you like to start your overtime now?")
-          .then((result) async {
-        if (!result) {
-          Navigator.of(context).pop();
+      setState(() {
+        isLoading = true;
+      });
+      EmployeeModel user = context.read<User>().user!;
+      await getLocation();
+      await getSiteByLocation(user, user.port, latitude!, longitude!)
+          .then((site) async {
+        tempSite = site;
+        tempInTerminal = site.id != 0;
+        tempSiteLoaded = true;
+      });
+      await getCurrentShift(user.port, TimeOfDay.now()).then((shift) async {
+        tempShift = shift;
+      });
+      tempAttendance = await getAttendance();
+      if (tempAttendance!.attendanceType == 'OVERTIME' &&
+          tempAttendance.id == 0) {
+        await showAlertDialog(context, 'Overtime',
+                "You've wrapped up for the day. Would you like to start your overtime now?")
+            .then((result) async {
+          if (!result) {
+            Navigator.of(context).pop();
+          }
+        });
+      }
+      setState(() {
+        site = tempSite;
+        inTerminal = tempInTerminal;
+        siteLoaded = tempSiteLoaded;
+        siteLoaded = true;
+        shift = tempShift;
+        attendance = tempAttendance;
+        attendance!.siteId = site!.id;
+        attendance!.shiftId = shift != null ? shift!.id : 0;
+        attendance!.latitude = latitude;
+        attendance!.longitude = longitude;
+        openAttendance = attendance!.checkOutTime != null;
+        isCheckIn = attendance!.checkOutTime != null;
+        checkIn = isCheckIn ? "Check-In" : "Check-Out";
+        attendanceStatus = attendance!.attendanceType == 'OVERTIME'
+            ? 'OVERTIME'
+            : isCheckIn
+                ? 'CHECK_IN'
+                : 'CHECK_OUT';
+        if (attendance!.attendanceType == 'REGULAR' &&
+            attendance!.checkOutTime == null) {
+          TimeOfDay now = TimeOfDay.now();
+          if (now.isAfter(TimeOfDay.fromDateTime(attendance!.checkInTime)) &&
+              !now.isBefore(shift!.endTime!)) {
+            allowCheckOut = true;
+          }
         }
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        error = ErrorObject(title: 'Error', message: e.toString());
       });
     }
-    setState(() {
-      site = tempSite;
-      inTerminal = tempInTerminal;
-      siteLoaded = tempSiteLoaded;
-      siteLoaded = true;
-      shift = tempShift;
-      attendance = tempAttendance;
-      attendance!.siteId = site!.id;
-      attendance!.shiftId = shift != null ? shift!.id : 0;
-      attendance!.latitude = latitude;
-      attendance!.longitude = longitude;
-      openAttendance = attendance!.checkOutTime != null;
-      isCheckIn = attendance!.checkOutTime != null;
-      checkIn = isCheckIn ? "Check-In" : "Check-Out";
-      attendanceStatus = attendance!.attendanceType == 'OVERTIME'
-          ? 'OVERTIME'
-          : isCheckIn
-              ? 'CHECK_IN'
-              : 'CHECK_OUT';
-
-      isLoading = false;
-    });
   }
 
   @override
   void initState() {
     super.initState();
-    startTimer();
     getData();
   }
 
@@ -184,86 +196,119 @@ class _CheckInState extends State<CheckIn> {
   Widget build(BuildContext context) {
     EmployeeModel user = context.read<User>().user!;
     return ScaffoldPage(
+      error: error,
       title: user.name,
       body: Padding(
         padding: const EdgeInsets.all(10.0),
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                Card(
-                  elevation: 5,
-                  color: Colors.green,
-                  child: SizedBox(
-                    height: 60,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          time,
-                          style: TextStyle(
-                              fontFamily: 'Nunito',
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.lightGreenAccent),
-                        ),
-                      ],
+        child: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : Stack(
+                children: [
+                  Card(
+                    color: Colors.white,
+                    child: SizedBox(
+                      height: 60,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            checkIn,
+                            style: TextStyle(
+                                fontFamily: 'Nunito',
+                                fontSize: 20,
+                                color: Colors.black),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                openAttendance ? completedShift() : Container(),
-                openAttendance
-                    ? Container()
-                    : isLoading
-                        ? Center(child: CircularProgressIndicator())
-                        : Column(
+                  allowCheckOut
+                      ? Column(
+                          children: [
+                            SizedBox(
+                              height: 10,
+                            ),
+                            openAttendance ? completedShift() : Container(),
+                            openAttendance
+                                ? Container()
+                                : isLoading
+                                    ? Center(child: CircularProgressIndicator())
+                                    : Column(
+                                        children: [
+                                          terminalCard(site!),
+                                          shift != null
+                                              ? Column(children: [
+                                                  ...widgets(user),
+                                                  SizedBox(height: 20),
+                                                  image != null
+                                                      ? Container()
+                                                      : Text(
+                                                          'Capture photo to $checkIn',
+                                                          style: TextStyle(
+                                                            color: Colors.red,
+                                                          ),
+                                                        ),
+                                                  Button(
+                                                    label: checkIn,
+                                                    color: Colors.green,
+                                                    width: 200,
+                                                    onPressed: image == null ||
+                                                            shift == null
+                                                        ? null
+                                                        : action,
+                                                  ),
+                                                ])
+                                              : Padding(
+                                                  padding: const EdgeInsets.all(
+                                                      20.0),
+                                                  child: Text(
+                                                    'No shift available.',
+                                                    style: TextStyle(
+                                                        color: Colors.red[900],
+                                                        fontSize: 20),
+                                                  ),
+                                                ),
+                                        ],
+                                      ),
+                          ],
+                        )
+                      : SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.8,
+                          width: MediaQuery.of(context).size.width,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              terminalCard(site!),
-                              shift != null
-                                  ? Column(children: [
-                                      ...widgets(user),
-                                      SizedBox(height: 20),
-                                      image != null
-                                          ? Container()
-                                          : Text(
-                                              'Capture photo to $checkIn',
-                                              style: TextStyle(
-                                                color: Colors.red,
-                                              ),
-                                            ),
-                                      Button(
-                                        label: checkIn,
-                                        color: Colors.green,
-                                        width: 200,
-                                        onPressed:
-                                            image == null || shift == null
-                                                ? null
-                                                : action,
-                                      ),
-                                    ])
-                                  : Padding(
-                                      padding: const EdgeInsets.all(20.0),
-                                      child: Text(
-                                        'No shift available.',
-                                        style: TextStyle(
-                                            color: Colors.red[900],
-                                            fontSize: 20),
-                                      ),
-                                    ),
+                              Text(
+                                'Checkout Denied',
+                                style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.red[900]),
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(height: 20),
+                              Text(
+                                'You cannot check out before your scheduled shift end time. Please complete your shift before attempting to check out.',
+                                style: TextStyle(
+                                    fontSize: 16, color: Colors.black),
+                                textAlign: TextAlign.center,
+                              ),
+                              Divider(height: 50),
+                              Button(
+                                  label: 'Back',
+                                  color: Colors.blue,
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  })
                             ],
-                          ),
-                _isSaving == true
-                    ? Positioned.fill(
-                        child: LoadingWidget(message: 'Saving...'),
-                      )
-                    : Container(),
-              ],
-            ),
-          ],
-        ),
+                          )),
+                  _isSaving == true
+                      ? Positioned.fill(
+                          child: LoadingWidget(message: 'Saving...'),
+                        )
+                      : Container(),
+                ],
+              ),
       ),
     );
   }
@@ -628,11 +673,5 @@ class _CheckInState extends State<CheckIn> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
   }
 }

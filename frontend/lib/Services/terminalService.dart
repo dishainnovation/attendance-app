@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:http/http.dart' as http;
 import 'package:frontend/Models/SiteModel.dart';
 
@@ -93,13 +94,16 @@ Future<List<SiteModel>> getSitesByPort(int portId) async {
   }
 }
 
-Future<SiteModel> getSiteByLocation(
-    int portId, double currentLatitude, double currentLongitude) async {
+Future<SiteModel> getSiteByLocation(EmployeeModel employee, int portId,
+    double currentLatitude, double currentLongitude) async {
   List<SiteModel> sites = await getSitesByPort(portId);
   SiteModel site = sites.firstWhere((site) {
     double distance = calculateDistance(
         site.latitude, site.longitude, currentLatitude, currentLongitude);
-    return distance <= site.geoFenceArea;
+    if (!employee.designation!.remote_checkin && distance > site.geoFenceArea) {
+      return false;
+    }
+    return true;
   },
       orElse: () => SiteModel(
           id: 0,

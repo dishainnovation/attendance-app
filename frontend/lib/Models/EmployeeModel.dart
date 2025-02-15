@@ -67,4 +67,19 @@ class EmployeeModel {
         'port': port.toString(),
         'port_name': portName
       };
+
+  Map<String, dynamic> postData() => {
+        'id': id.toString(),
+        'employee_code': employeeCode,
+        'name': name,
+        'mobile_number': mobileNumber,
+        'gender': gender,
+        'password': password,
+        'designation': designation?.toJson()['id'],
+        'profile_image': profileImage,
+        'date_of_birth': dateOfBirth.toString(),
+        'date_of_joining': dateOfJoining.toString(),
+        'port': port.toString(),
+        'port_name': portName
+      };
 }

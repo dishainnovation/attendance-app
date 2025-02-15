@@ -1,10 +1,7 @@
-import json
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Designation, Employee, Port
-from .serializers import EmployeeSerializer
-from django.core import serializers
 from django.http import JsonResponse
 
 

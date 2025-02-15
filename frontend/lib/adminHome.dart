@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
+import 'package:frontend/Models/ErrorObject.dart';
 import 'package:frontend/Services/userNotifier.dart';
 import 'package:provider/provider.dart';
 import 'Services/navigationService.dart';
@@ -16,109 +17,45 @@ class AdminHome extends StatefulWidget {
 }
 
 class _AdminHomeState extends State<AdminHome> {
+  ErrorObject error = ErrorObject(title: '', message: '');
   double cardSize = 100;
   List<Widget> functionTiles = [];
   List<Widget> reportsTiles = [];
   EmployeeModel? employee;
 
+  getUser() {
+    try {
+      setState(() {
+        employee = context.read<User>().user!;
+      });
+    } catch (e) {
+      setState(() {
+        error = ErrorObject(title: 'Error', message: e.toString());
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    getUser();
   }
 
   @override
   Widget build(BuildContext context) {
     setTiles();
-    employee = context.read<User>().user!;
     Size screenSize = MediaQuery.of(context).size;
     return ScaffoldPage(
+      error: error,
       title: 'Attendance Tracker',
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            SizedBox(
-              height: 80,
-              child: DrawerHeader(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.green[900]!, Colors.green],
-                  ),
-                ),
-                child: Text(
-                  'Attendance Tracker',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                  ),
-                ),
-              ),
-            ),
-            ListTile(
-              title: const Text('Designations'),
-              leading: Icon(
-                Icons.approval,
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                NavigationService.navigateTo('/designations-list');
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: drawer(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           employee == null
-              ? Container()
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome ${employee!.name}',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Designation:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            Text(
-                              employee!.designation!.name.toString(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.normal,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Button(
-                          label: 'Check In',
-                          color: Colors.blue,
-                          onPressed: () {
-                            NavigationService.navigateTo('/check-in');
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-          SizedBox(height: 30),
+              ? Flexible(flex: 1, child: Container())
+              : employeeInfo(),
           Divider(),
-          SizedBox(height: 10),
           SizedBox(
             height: screenSize.height * (functionTiles.length - 1) / 10,
             width: screenSize.width,
@@ -134,6 +71,89 @@ class _AdminHomeState extends State<AdminHome> {
           ),
         ],
       ),
+    );
+  }
+
+  Drawer? drawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          SizedBox(
+            height: 80,
+            child: DrawerHeader(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.green[900]!, Colors.green],
+                ),
+              ),
+              child: Text(
+                'Attendance Tracker',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                ),
+              ),
+            ),
+          ),
+          ListTile(
+            title: const Text('Designations'),
+            leading: Icon(
+              Icons.approval,
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              NavigationService.navigateTo('/designations-list');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget employeeInfo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Welcome ${employee!.name}',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        SizedBox(
+          height: 5,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Designation:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                ),
+                Text(
+                  employee!.designation!.name.toString(),
+                  style: TextStyle(
+                    fontWeight: FontWeight.normal,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+            Button(
+              label: 'Check In',
+              color: Colors.blue,
+              onPressed: () {
+                NavigationService.navigateTo('/check-in');
+              },
+            ),
+          ],
+        ),
+      ],
     );
   }
 

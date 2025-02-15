@@ -5,6 +5,7 @@ import 'package:frontend/Services/userNotifier.dart';
 import 'package:frontend/employee.dart';
 import 'package:provider/provider.dart';
 
+import 'Models/ErrorObject.dart';
 import 'Utility.dart';
 import 'widgets/ScaffoldPage.dart';
 
@@ -16,6 +17,7 @@ class EmployeesList extends StatefulWidget {
 }
 
 class _EmployeesListState extends State<EmployeesList> {
+  ErrorObject error = ErrorObject(title: '', message: '');
   List<EmployeeModel> allEmployeesList = [];
   List<EmployeeModel> filteredEmployeesList = [];
 
@@ -40,7 +42,11 @@ class _EmployeesListState extends State<EmployeesList> {
         allEmployeesList = employees;
         filteredEmployeesList = employees;
       });
-    }).catchError((onError) => throw Exception(onError));
+    }).catchError((e) {
+      setState(() {
+        error = ErrorObject(title: 'Error', message: e.toString());
+      });
+    });
   }
 
   @override
@@ -57,6 +63,7 @@ class _EmployeesListState extends State<EmployeesList> {
         .where((emp) => emp.port == user.port)
         .toList();
     return ScaffoldPage(
+      error: error,
       title: 'Employees List',
       bottom: PreferredSize(
         preferredSize: Size.fromHeight(60.0),

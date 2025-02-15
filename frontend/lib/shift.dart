@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'Models/ErrorObject.dart';
 import 'Models/PortModel.dart';
 import 'Models/ShiftModel.dart';
 import 'Services/portService.dart';
@@ -22,6 +23,7 @@ class Shift extends StatefulWidget {
 }
 
 class _ShiftState extends State<Shift> {
+  ErrorObject error = ErrorObject(title: '', message: '');
   final formKey = GlobalKey<FormState>();
   String page = 'Shift';
   bool _isSaving = false;
@@ -60,19 +62,17 @@ class _ShiftState extends State<Shift> {
   @override
   Widget build(BuildContext context) {
     return ScaffoldPage(
+      error: error,
       title: page,
-      body: Container(
-        // height: MediaQuery.of(context).size.height,
-        child: Stack(
-          children: [
-            form(context, shift),
-            _isSaving == true
-                ? Positioned.fill(
-                    child: LoadingWidget(message: 'Saving...'),
-                  )
-                : Container(),
-          ],
-        ),
+      body: Stack(
+        children: [
+          form(context, shift),
+          _isSaving == true
+              ? Positioned.fill(
+                  child: LoadingWidget(message: 'Saving...'),
+                )
+              : Container(),
+        ],
       ),
     );
   }
@@ -210,35 +210,42 @@ class _ShiftState extends State<Shift> {
     setState(() {
       _isSaving = true;
     });
-    shift.name = nameController.text;
-    shift.durationHours = int.parse(durationController.text);
-    shift.portName = ports.firstWhere((port) => port.id == shift.port).name;
-    if (shift.id == 0) {
-      await createShift(shift).then((response) async {
-        setState(() {
-          _isSaving = false;
+    try {
+      shift.name = nameController.text;
+      shift.durationHours = int.parse(durationController.text);
+      shift.portName = ports.firstWhere((port) => port.id == shift.port).name;
+      if (shift.id == 0) {
+        await createShift(shift).then((response) async {
+          setState(() {
+            _isSaving = false;
+          });
+          await showMessageDialog(context, page, 'Shift saved successfuly.');
+          Navigator.pop(context);
+        }).catchError((err) {
+          setState(() {
+            _isSaving = false;
+          });
+          showMessageDialog(context, page, err.toString());
         });
-        await showMessageDialog(context, page, 'Shift saved successfuly.');
-        Navigator.pop(context);
-      }).catchError((err) {
-        setState(() {
-          _isSaving = false;
+      } else {
+        await updateShift(shift.id, shift).then((response) async {
+          setState(() {
+            _isSaving = false;
+          });
+          await showMessageDialog(context, page, 'Shift saved successfuly.');
+          Navigator.pop(context);
+        }).catchError((err) {
+          setState(() {
+            _isSaving = false;
+          });
+          showMessageDialog(context, page, err.toString());
         });
-        showMessageDialog(context, page, err.toString());
+      }
+    } catch (e) {
+      setState(() {
+        _isSaving = false;
       });
-    } else {
-      await updateShift(shift.id, shift).then((response) async {
-        setState(() {
-          _isSaving = false;
-        });
-        await showMessageDialog(context, page, 'Shift saved successfuly.');
-        Navigator.pop(context);
-      }).catchError((err) {
-        setState(() {
-          _isSaving = false;
-        });
-        showMessageDialog(context, page, err.toString());
-      });
+      error = ErrorObject(title: 'Error', message: e.toString());
     }
   }
 }

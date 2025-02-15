@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.http import JsonResponse
 from .models import Attendance, Employee, Shift, Site
 from .serializers import AttendanceSerializer
 import face_recognition
@@ -16,10 +17,12 @@ def attendance_list(request):
         date = request.GET.get('date')
         if(employee is not None and date is not None):
             attendance_records = Attendance.objects.filter(employee=employee,attendance_date=date)
-            
-            serializer = AttendanceSerializer(attendance_records, many=True)
-            print(serializer.data)
-            return Response(serializer.data)
+            attendance_data = []
+            for att in attendance_records:
+                attendance_data.append(attendance_object(att))
+                
+            print(attendance_data)
+            return JsonResponse(attendance_data, safe=False)
 
         serializer = AttendanceSerializer(ports, many=True)
         return Response(serializer.data)
@@ -81,14 +84,7 @@ def attendance_list(request):
             return Response(status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_204_NO_CONTENT)
-    # except Attendance.DoesNotExist:
-    #     return Response(status=status.HTTP_400_BAD_REQUEST)
-        
-        # serializer = AttendanceSerializer(attendance, data=request.data)
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return Response(serializer.data)
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     elif request.method == 'DELETE':
         try:
@@ -103,9 +99,6 @@ def attendance_list(request):
 def compare(image1, image2):
     file1 = image1
     file2 = image2
-
-    # if file1.filename == '' or file2.filename == '':
-    #     return {'match': False}
 
     try:
         # Read image files
@@ -149,3 +142,25 @@ def correct_image_orientation(image):
         # Image does not have EXIF data
         pass
     return image
+
+def attendance_object(attendance):
+    if not attendance.check_out_photo:
+        check_out_photo = None
+    else:
+        check_out_photo = attendance.check_out_photo.url
+    
+    return {
+        'id': attendance.id,
+        'employee': attendance.employee.name,
+        'site': attendance.site.name,
+        'shift': attendance.shift.name,
+        'check_in_time': attendance.check_in_time,
+        'check_out_time': attendance.check_out_time,
+        'latitude': attendance.latitude,
+        'longitude': attendance.longitude,
+        'check_in_photo': attendance.check_in_photo.url,
+        'check_out_photo': check_out_photo,
+        'attendance_type': attendance.attendance_type,
+        'created_at': attendance.created_at,
+        'updated_at': attendance.updated_at,
+    }

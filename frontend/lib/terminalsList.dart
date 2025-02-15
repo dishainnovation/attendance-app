@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/terminal.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 
+import 'Models/ErrorObject.dart';
 import 'Models/PortModel.dart';
 import 'Models/SiteModel.dart';
 import 'Services/portService.dart';
@@ -19,20 +20,27 @@ class TerminalsList extends StatefulWidget {
 }
 
 class _TerminalsListState extends State<TerminalsList> {
+  ErrorObject error = ErrorObject(title: '', message: '');
   List<PortModel> ports = <PortModel>[];
   Future<List<SiteModel>>? futureSite;
   PortModel? selectedPort;
 
   getPorts() async {
-    await getPort().then((ports) {
-      setState(() {
-        this.ports = ports;
-        selectedPort = widget.port;
-        if (selectedPort != null) {
-          futureSite = getSitesByPort(selectedPort!.id);
-        }
+    try {
+      await getPort().then((ports) {
+        setState(() {
+          this.ports = ports;
+          selectedPort = widget.port;
+          if (selectedPort != null) {
+            futureSite = getSitesByPort(selectedPort!.id);
+          }
+        });
       });
-    });
+    } catch (e) {
+      setState(() {
+        error = ErrorObject(title: 'Error', message: e.toString());
+      });
+    }
   }
 
   @override
@@ -45,11 +53,13 @@ class _TerminalsListState extends State<TerminalsList> {
   Widget build(BuildContext context) {
     if (ports.isEmpty) {
       return ScaffoldPage(
+        error: error,
         title: 'Terminals List',
         body: Center(child: CircularProgressIndicator()),
       );
     }
     return ScaffoldPage(
+      error: error,
       title: 'Terminals List',
       floatingButton: FloatingActionButton(
         backgroundColor: Colors.green,

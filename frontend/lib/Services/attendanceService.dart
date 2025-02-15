@@ -40,7 +40,7 @@ Future<bool> createAttendance(AttendanceModel attendance, File file) async {
     if (kDebugMode) {
       print(e);
     }
-    throw Exception('Error occurred: $e');
+    throw Exception(e.toString());
   }
 }
 
@@ -97,11 +97,11 @@ Future<List<AttendanceModel>> getAttendance() async {
 }
 
 Future<List<AttendanceModel>> getEmployeeAttendance(
-    int attendanceId, String? date) async {
+    int employeeId, String? date) async {
   try {
-    Uri uri = Uri.parse('$url?attendance=$attendanceId');
+    Uri uri = Uri.parse('$url?employee=$employeeId');
     if (date != null) {
-      uri = Uri.parse('$url?attendance=$attendanceId&date=$date');
+      uri = Uri.parse('$url?employee=$employeeId&date=$date');
     }
     final response =
         await http.get(uri, headers: {"Accept": "application/json"});

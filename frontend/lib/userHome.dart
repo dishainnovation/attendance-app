@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import 'Models/AttendanceModel.dart';
 import 'Models/EmployeeModel.dart';
+import 'Models/ErrorObject.dart';
 import 'Services/attendanceService.dart';
 import 'Services/userNotifier.dart';
 import 'Utility.dart';
@@ -23,6 +24,7 @@ class UserHome extends StatefulWidget {
 }
 
 class _UserHomeState extends State<UserHome> {
+  ErrorObject error = ErrorObject(title: '', message: '');
   EmployeeModel? user;
   String locationName = '';
   String time = '';
@@ -33,15 +35,21 @@ class _UserHomeState extends State<UserHome> {
   double percentageDone = 0.00;
 
   getLocation() async {
-    await getCurrentLocation().then((location) async {
-      await getLocationName(location).then((value) => setState(() {
-            locationName = value;
-            setState(() {
-              latitude = location.latitude;
-              longitude = location.longitude;
-            });
-          }));
-    });
+    try {
+      await getCurrentLocation().then((location) async {
+        await getLocationName(location).then((value) => setState(() {
+              locationName = value;
+              setState(() {
+                latitude = location.latitude;
+                longitude = location.longitude;
+              });
+            }));
+      });
+    } catch (e) {
+      setState(() {
+        error = ErrorObject(title: 'Error', message: e.toString());
+      });
+    }
   }
 
   Future<AttendanceModel?> getAttendance() async {
@@ -98,6 +106,7 @@ class _UserHomeState extends State<UserHome> {
   @override
   Widget build(BuildContext context) {
     return ScaffoldPage(
+      error: error,
       title: user != null ? user!.name : 'Home',
       body: Column(
         children: [

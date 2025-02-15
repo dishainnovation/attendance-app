@@ -8,14 +8,17 @@ import '../Models/EmployeeModel.dart';
 import 'package:http_parser/http_parser.dart';
 
 import '../Utility.dart';
+import 'dioClient.dart';
 
-String url = '${baseUrl}employee/';
+String url = 'employee/';
 Uri uri = Uri.parse(url);
+
+final InterceptedClient client = InterceptedClient();
 
 Future<List<EmployeeModel>> getEmployees() async {
   try {
     final response =
-        await http.get(uri, headers: {"Accept": "application/json"});
+        await client.get(uri, headers: {"Accept": "application/json"});
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -27,7 +30,7 @@ Future<List<EmployeeModel>> getEmployees() async {
       throw Exception('Failed to load employees: ${response.reasonPhrase}');
     }
   } catch (e) {
-    throw Exception('Error occurred: $e');
+    rethrow;
   }
 }
 
@@ -54,11 +57,9 @@ Future<bool> createEmployee(EmployeeModel employee, File file) async {
       ),
     );
 
-    http.StreamedResponse response = await request.send();
+    http.StreamedResponse response = await client.send(request);
 
     if (response.statusCode == 201) {
-      // var responseData = await response.stream.bytesToString();
-      // var responseJson = json.decode(responseData);
       return true;
     } else {
       throw Exception('Failed to save employees: ${response.reasonPhrase}');
@@ -98,8 +99,6 @@ Future<bool> updateEmployee(int id, EmployeeModel employee, File file) async {
       http.StreamedResponse response = await request.send();
 
       if (response.statusCode == 200) {
-        // var responseData = await response.stream.bytesToString();
-        // var responseJson = json.decode(responseData);
         return true;
       } else {
         throw Exception('Failed to save employees: ${response.reasonPhrase}');

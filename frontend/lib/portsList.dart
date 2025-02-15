@@ -4,6 +4,7 @@ import 'package:frontend/Utility.dart';
 import 'package:frontend/terminalsList.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 
+import 'Models/ErrorObject.dart';
 import 'Models/PortModel.dart';
 import 'Services/portService.dart';
 import 'port.dart';
@@ -16,9 +17,11 @@ class Portslist extends StatefulWidget {
 }
 
 class _PortslistState extends State<Portslist> {
+  ErrorObject error = ErrorObject(title: '', message: '');
   @override
   Widget build(BuildContext context) {
     return ScaffoldPage(
+      error: error,
       title: 'Ports List',
       floatingButton: FloatingActionButton(
         backgroundColor: Colors.green,
@@ -29,28 +32,32 @@ class _PortslistState extends State<Portslist> {
         },
         child: Icon(Icons.add, color: Colors.white),
       ),
-      body: FutureBuilder<List<PortModel>>(
-        future: getPort(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            if (snapshot.data!.isEmpty) {
-              return Center(child: Text('No ports found'));
-            }
-            return SizedBox(
-              height: MediaQuery.of(context).size.height * 0.8,
-              child: ListView.builder(
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, index) {
-                    return portCard(snapshot.data![index]);
-                  }),
-            );
-          } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          } else {
-            return Center(child: CircularProgressIndicator());
+      body: portsList(),
+    );
+  }
+
+  FutureBuilder<List<PortModel>> portsList() {
+    return FutureBuilder<List<PortModel>>(
+      future: getPort(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          if (snapshot.data!.isEmpty) {
+            return Center(child: Text('No ports found'));
           }
-        },
-      ),
+          return SizedBox(
+            height: MediaQuery.of(context).size.height * 0.8,
+            child: ListView.builder(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  return portCard(snapshot.data![index]);
+                }),
+          );
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else {
+          return Center(child: CircularProgressIndicator());
+        }
+      },
     );
   }
 
