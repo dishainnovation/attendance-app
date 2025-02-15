@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:geocoding/geocoding.dart';
@@ -12,8 +11,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math' as math;
 
-String baseUrl = 'http://192.168.0.100:8000/api/';
-String baseImageUrl = 'http://192.168.0.100:8000';
+String url = 'http://192.168.0.102:8000';
+String baseUrl = '${url}/api/';
+String baseImageUrl = url;
 
 Future<void> save(String name, double distance, File? image1) async {
   final position = await getCurrentLocation();
@@ -155,6 +155,45 @@ Future<void> showMessageDialog(context, String title, String message) async {
   );
 }
 
+Future<bool> showAlertDialog(context, String title, String message) async {
+  bool result = false;
+  await showDialog<void>(
+    context: context,
+    barrierDismissible: false, // user must tap button!
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(title),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              Text(message),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Yes'),
+            onPressed: () {
+              result = true;
+              Navigator.of(context).pop();
+              return;
+            },
+          ),
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              result = false;
+              Navigator.of(context).pop();
+              return;
+            },
+          ),
+        ],
+      );
+    },
+  );
+  return result;
+}
+
 Future<EmployeeModel?> getUserInfo() async {
   try {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -195,25 +234,8 @@ String displayDate(DateTime date) {
   return DateFormat("dd-MM-yyyy").format(date);
 }
 
-showSnackBar(BuildContext context, String title, String message,
-    ContentType contentType) {
-  var materialBanner = MaterialBanner(
-    elevation: 0,
-    backgroundColor: Colors.transparent,
-    forceActionsBelow: true,
-    content: AwesomeSnackbarContent(
-      title: title,
-      message: message,
+showSnackBar(BuildContext context, String title, String message) {
+  final snackBar = SnackBar(content: Text(message));
 
-      /// change contentType to ContentType.success, ContentType.warning or ContentType.help for variants
-      contentType: contentType,
-      // to configure for material banner
-      inMaterialBanner: true,
-    ),
-    actions: const [SizedBox.shrink()],
-  );
-
-  ScaffoldMessenger.of(context)
-    ..hideCurrentMaterialBanner()
-    ..showMaterialBanner(materialBanner);
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }

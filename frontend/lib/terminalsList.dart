@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/terminal.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 
+import 'Models/ErrorObject.dart';
 import 'Models/PortModel.dart';
 import 'Models/SiteModel.dart';
 import 'Services/portService.dart';
@@ -19,20 +20,27 @@ class TerminalsList extends StatefulWidget {
 }
 
 class _TerminalsListState extends State<TerminalsList> {
+  ErrorObject error = ErrorObject(title: '', message: '');
   List<PortModel> ports = <PortModel>[];
   Future<List<SiteModel>>? futureSite;
   PortModel? selectedPort;
 
   getPorts() async {
-    await getPort().then((ports) {
-      setState(() {
-        this.ports = ports;
-        selectedPort = widget.port;
-        if (selectedPort != null) {
-          futureSite = getSitesByPort(selectedPort!.id);
-        }
+    try {
+      await getPort().then((ports) {
+        setState(() {
+          this.ports = ports;
+          selectedPort = widget.port;
+          if (selectedPort != null) {
+            futureSite = getSitesByPort(selectedPort!.id);
+          }
+        });
       });
-    });
+    } catch (e) {
+      setState(() {
+        error = ErrorObject(title: 'Error', message: e.toString());
+      });
+    }
   }
 
   @override
@@ -45,11 +53,13 @@ class _TerminalsListState extends State<TerminalsList> {
   Widget build(BuildContext context) {
     if (ports.isEmpty) {
       return ScaffoldPage(
+        error: error,
         title: 'Terminals List',
         body: Center(child: CircularProgressIndicator()),
       );
     }
     return ScaffoldPage(
+      error: error,
       title: 'Terminals List',
       floatingButton: FloatingActionButton(
         backgroundColor: Colors.green,
@@ -82,30 +92,33 @@ class _TerminalsListState extends State<TerminalsList> {
               },
             ),
           )),
-      body: FutureBuilder<List<SiteModel>>(
-          future: futureSite,
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              if (snapshot.data!.isEmpty) {
-                return Center(child: Text('No terminals found'));
+      body: SizedBox(
+        height: MediaQuery.of(context).size.height - 231,
+        child: FutureBuilder<List<SiteModel>>(
+            future: futureSite,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                if (snapshot.data!.isEmpty) {
+                  return Center(child: Text('No terminals found'));
+                }
+                return SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.78,
+                  child: ListView.builder(
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        return terminalCard(snapshot.data![index]);
+                      }),
+                );
+              } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else {
+                return Center(
+                  child: Text('Select Port'),
+                );
+                // return Center(child: CircularProgressIndicator());
               }
-              return SizedBox(
-                height: MediaQuery.of(context).size.height * 0.8,
-                child: ListView.builder(
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      return terminalCard(snapshot.data![index]);
-                    }),
-              );
-            } else if (snapshot.hasError) {
-              return Text('Error: ${snapshot.error}');
-            } else {
-              return Center(
-                child: Text('Select Port'),
-              );
-              // return Center(child: CircularProgressIndicator());
-            }
-          }),
+            }),
+      ),
     );
   }
 

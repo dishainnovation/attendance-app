@@ -5,9 +5,9 @@ import 'package:frontend/Models/Designation.dart';
 import 'package:frontend/Services/userNotifier.dart';
 import 'package:frontend/widgets/Button.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:provider/provider.dart';
 import 'Models/EmployeeModel.dart';
+import 'Models/ErrorObject.dart';
 import 'Models/PortModel.dart';
 import 'Services/designationService.dart';
 import 'Services/employeeService.dart';
@@ -27,11 +27,15 @@ class Employee extends StatefulWidget {
 }
 
 class _EmployeeState extends State<Employee> {
+  ErrorObject error = ErrorObject(title: '', message: '');
+  EmployeeModel? user;
   final formKey = GlobalKey<FormState>();
   String page = 'Employee';
   bool _isSaving = false;
   List<PortModel> ports = <PortModel>[];
   List<DesignationModel> designations = <DesignationModel>[];
+  File? localImage;
+  bool isNetworkImage = false;
 
   EmployeeModel employee = EmployeeModel(
       id: 0,
@@ -47,14 +51,18 @@ class _EmployeeState extends State<Employee> {
       portName: '');
 
   TextEditingController nameController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  TextEditingController mobileController = TextEditingController();
 
   getPorts() async {
     await getPort().then((ports) {
       setState(() {
         this.ports = ports;
         employee.employeeCode =
-            generateEmployeeCode(ports[0].name, widget.employeeesList);
+            generateEmployeeCode(user!.portName!, widget.employeeesList);
       });
+    }).catchError((e) {
+      error = ErrorObject(title: 'Error', message: e.toString());
     });
   }
 
@@ -68,38 +76,44 @@ class _EmployeeState extends State<Employee> {
           employee.designation = designation;
         });
       });
+    }).catchError((e) {
+      error = ErrorObject(title: 'Error', message: e.toString());
     });
   }
 
   @override
   void initState() {
     super.initState();
+    user = context.read<User>().user!;
     getPorts();
     getDesignationsList();
     if (widget.employee != null) {
       employee = widget.employee!;
       nameController.text = employee.name;
+      passwordController.text = employee.password;
+      mobileController.text = employee.mobileNumber;
+      isNetworkImage = true;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    EmployeeModel user = context.read<User>().user!;
-    if (user.designation!.user_type != 'SUPER_ADMIN') {
-      employee.employeeCode =
-          generateEmployeeCode(user.portName!, widget.employeeesList);
-    }
     return ScaffoldPage(
+      error: error,
       title: page,
-      body: Stack(
-        children: [
-          form(context, employee, user),
-          _isSaving == true
-              ? Positioned.fill(
-                  child: LoadingWidget(message: 'Saving...'),
-                )
-              : Container(),
-        ],
+      body: SingleChildScrollView(
+        child: Stack(
+          children: [
+            SizedBox(
+                height: MediaQuery.of(context).size.height * 0.86,
+                child: form(context, employee, user!)),
+            _isSaving == true
+                ? Positioned.fill(
+                    child: LoadingWidget(message: 'Saving...'),
+                  )
+                : Container(),
+          ],
+        ),
       ),
     );
   }
@@ -108,59 +122,243 @@ class _EmployeeState extends State<Employee> {
       BuildContext context, EmployeeModel employee, EmployeeModel user) {
     return Form(
       key: formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 10),
-          Card(
-            color: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Name'),
-                  Textfield(
-                    label: 'Name',
-                    controller: nameController,
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                    onFieldSubmitted: (value) {
-                      setState(() {
-                        employee.name = value;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter name';
-                      }
-                      return null;
-                    },
-                  ),
-                  Text('Port'),
-                  user.designation?.user_type != 'SUPER_ADMIN'
-                      ? Textfield(
-                          label: 'Port',
-                          readOnly: true,
-                          controller:
-                              TextEditingController(text: user.portName),
-                        )
-                      : ports.isNotEmpty
+      child: ListView.builder(
+        itemCount: 1,
+        itemBuilder: (BuildContext context, int index) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 10),
+              Card(
+                color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Name'),
+                      Textfield(
+                        label: 'Name',
+                        controller: nameController,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                        onFieldSubmitted: (value) {
+                          setState(() {
+                            employee.name = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter name';
+                          }
+                          return null;
+                        },
+                      ),
+                      Text('Port'),
+                      user.designation?.user_type != 'SUPER_ADMIN'
+                          ? Textfield(
+                              label: 'Port',
+                              readOnly: true,
+                              controller:
+                                  TextEditingController(text: user.portName),
+                            )
+                          : ports.isNotEmpty
+                              ? DropDown(
+                                  items:
+                                      ports.map((port) => port.name).toList(),
+                                  initialItem: employee.port == 0
+                                      ? user.portName
+                                      : employee.portName!,
+                                  title: 'Select Port',
+                                  onValueChanged: (value) {
+                                    setState(() {
+                                      PortModel port =
+                                          getPortByName(value!, ports);
+                                      employee.port = port.id;
+                                      employee.portName = port.name;
+                                      if (employee.id == 0) {
+                                        employee.employeeCode =
+                                            generateEmployeeCode(port.name,
+                                                widget.employeeesList);
+                                      }
+                                    });
+                                  },
+                                )
+                              : Container(
+                                  height: 50,
+                                  width: double.infinity,
+                                  color: Colors.grey[350],
+                                ),
+                      Text('Code'),
+                      Textfield(
+                        label: 'Code',
+                        readOnly: true,
+                        controller:
+                            TextEditingController(text: employee.employeeCode),
+                        onFieldSubmitted: (value) {
+                          setState(() {
+                            employee.employeeCode = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter code';
+                          }
+                          return null;
+                        },
+                      ),
+                      Text('Password'),
+                      Textfield(
+                        label: 'Password',
+                        obscureText: true,
+                        controller: passwordController,
+                        onFieldSubmitted: (value) {
+                          setState(() {
+                            employee.password = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter password';
+                          }
+                          return null;
+                        },
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Gender'),
+                              SizedBox(
+                                width: 150,
+                                child: DropDown(
+                                  items: ['Male', 'Female'],
+                                  initialItem: 'Male',
+                                  title: 'Select Gender',
+                                  onValueChanged: (value) {
+                                    setState(() {
+                                      employee.gender = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Mobile Number'),
+                              Textfield(
+                                label: 'Mobile Number',
+                                width: 200,
+                                controller: mobileController,
+                                onFieldSubmitted: (value) {
+                                  setState(() {
+                                    employee.mobileNumber = value;
+                                  });
+                                },
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter mobile number';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Date of Birth'),
+                                Textfield(
+                                  label: 'Date of Birth',
+                                  readOnly: true,
+                                  width: 160,
+                                  controller: TextEditingController(
+                                    text: employee.dateOfBirth,
+                                  ),
+                                  onFieldSubmitted: (value) {
+                                    setState(() {
+                                      employee.dateOfBirth = value;
+                                    });
+                                  },
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter name';
+                                    }
+                                    return null;
+                                  },
+                                  onTap: () async {
+                                    await selectDate(context).then((value) {
+                                      setState(() {
+                                        employee.dateOfBirth =
+                                            formatDate(value);
+                                      });
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Hire Date'),
+                                Textfield(
+                                  label: 'Hire Date',
+                                  readOnly: true,
+                                  width: 160,
+                                  controller: TextEditingController(
+                                    text: employee.dateOfJoining,
+                                  ),
+                                  onFieldSubmitted: (value) {
+                                    setState(() {
+                                      employee.dateOfJoining = value;
+                                    });
+                                  },
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter name';
+                                    }
+                                    return null;
+                                  },
+                                  onTap: () async {
+                                    await selectDate(context).then((value) {
+                                      setState(() {
+                                        employee.dateOfJoining =
+                                            formatDate(value);
+                                      });
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text('Designation'),
+                      designations.isNotEmpty
                           ? DropDown(
-                              items: ports.map((port) => port.name).toList(),
-                              initialItem: employee.port == 0
-                                  ? user.portName
-                                  : employee.portName!,
-                              title: 'Select Port',
+                              items: designations
+                                  .map((designation) => designation.name)
+                                  .toList(),
+                              initialItem: employee.designation == null
+                                  ? designations[0].name
+                                  : employee.designation!.name,
+                              title: 'Select Designation',
                               onValueChanged: (value) {
                                 setState(() {
-                                  PortModel port = getPortByName(value!, ports);
-                                  employee.port = port.id;
-                                  employee.portName = port.name;
-                                  if (employee.id == 0) {
-                                    employee.employeeCode =
-                                        generateEmployeeCode(
-                                            port.name, widget.employeeesList);
-                                  }
+                                  DesignationModel designation =
+                                      getDesignationByName(
+                                          value!, designations);
+                                  employee.designation = designation;
                                 });
                               },
                             )
@@ -169,256 +367,94 @@ class _EmployeeState extends State<Employee> {
                               width: double.infinity,
                               color: Colors.grey[350],
                             ),
-                  Text('Code'),
-                  Textfield(
-                    label: 'Code',
-                    readOnly: true,
-                    controller:
-                        TextEditingController(text: employee.employeeCode),
-                    onFieldSubmitted: (value) {
-                      setState(() {
-                        employee.name = value;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter name';
-                      }
-                      return null;
-                    },
-                  ),
-                  Text('Password'),
-                  Textfield(
-                    label: 'Password',
-                    obscureText: true,
-                    controller: TextEditingController(text: employee.password),
-                    onFieldSubmitted: (value) {
-                      setState(() {
-                        employee.password = value;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter password';
-                      }
-                      return null;
-                    },
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Gender'),
-                          SizedBox(
-                            width: 150,
-                            child: DropDown(
-                              items: ['Male', 'Female'],
-                              initialItem: 'Male',
-                              title: 'Select Gender',
-                              onValueChanged: (value) {
-                                setState(() {
-                                  employee.gender = value;
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Mobile Number'),
-                          Textfield(
-                            label: 'Mobile Number',
-                            width: 200,
-                            controller: TextEditingController(
-                                text: employee.mobileNumber),
-                            onFieldSubmitted: (value) {
-                              setState(() {
-                                employee.mobileNumber = value;
-                              });
-                            },
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter mobile number';
-                              }
-                              return null;
-                            },
-                          ),
-                        ],
-                      ),
+                      SizedBox(height: 10),
+                      imageCard(employee),
                     ],
                   ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Date of Birth'),
-                            Textfield(
-                              label: 'Date of Birth',
-                              readOnly: true,
-                              width: 160,
-                              controller: TextEditingController(
-                                text: employee.dateOfBirth,
-                              ),
-                              onFieldSubmitted: (value) {
-                                setState(() {
-                                  employee.dateOfBirth = value;
-                                });
-                              },
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter name';
-                                }
-                                return null;
-                              },
-                              onTap: () async {
-                                await selectDate(context).then((value) {
-                                  setState(() {
-                                    employee.dateOfBirth = formatDate(value);
-                                  });
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Hire Date'),
-                            Textfield(
-                              label: 'Hire Date',
-                              readOnly: true,
-                              width: 160,
-                              controller: TextEditingController(
-                                text: employee.dateOfJoining,
-                              ),
-                              onFieldSubmitted: (value) {
-                                setState(() {
-                                  employee.dateOfJoining = value;
-                                });
-                              },
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter name';
-                                }
-                                return null;
-                              },
-                              onTap: () async {
-                                await selectDate(context).then((value) {
-                                  setState(() {
-                                    employee.dateOfJoining = formatDate(value);
-                                  });
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text('Designation'),
-                  designations.isNotEmpty
-                      ? DropDown(
-                          items: designations
-                              .map((designation) => designation.name)
-                              .toList(),
-                          initialItem: employee.designation == null
-                              ? designations[0].name
-                              : employee.designation!.name,
-                          title: 'Select Designation',
-                          onValueChanged: (value) {
-                            setState(() {
-                              DesignationModel designation =
-                                  getDesignationByName(value!, designations);
-                              employee.designation = designation;
-                            });
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Button(label: 'Save', color: Colors.green, onPressed: save),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Card imageCard(EmployeeModel employee) {
+    return Card(
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          children: [
+            Container(
+              width: 210,
+              height: 210,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[600]!),
+                borderRadius: BorderRadius.circular(7),
+              ),
+              child: employee.employeePhoto == null
+                  ? Icon(
+                      Icons.image,
+                      size: 200,
+                      color: Colors.grey,
+                    )
+                  : isNetworkImage
+                      ? Image.network(
+                          baseImageUrl + employee.employeePhoto!.path,
+                          height: 200,
+                          width: 200,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, event) {
+                            if (event == null) {
+                              return child;
+                            }
+                            return Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.image,
+                              size: 200,
+                              color: Colors.grey,
+                            );
                           },
                         )
-                      : Container(
-                          height: 50,
-                          width: double.infinity,
-                          color: Colors.grey[350],
+                      : Image.file(
+                          localImage!,
+                          height: 200,
+                          width: 200,
+                          fit: BoxFit.cover,
                         ),
-                  SizedBox(height: 10),
-                  Card(
-                    color: Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 210,
-                            height: 210,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey[600]!),
-                              borderRadius: BorderRadius.circular(7),
-                            ),
-                            child: employee.employeePhoto == null
-                                ? Icon(
-                                    Icons.image,
-                                    size: 200,
-                                    color: Colors.grey,
-                                  )
-                                : Image.network(
-                                    baseImageUrl + employee.employeePhoto!.path,
-                                    height: 200,
-                                    width: 200,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder: (context, child, event) {
-                                      if (event == null) {
-                                        return child;
-                                      }
-                                      return Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    },
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Image.asset(
-                                        'assets/images/attendance.png',
-                                        width: 200,
-                                        fit: BoxFit.cover,
-                                      );
-                                    },
-                                  ),
-                          ),
-                          SizedBox(
-                            height: 10,
-                          ),
-                          Center(
-                            child: Button(
-                              width: 180,
-                              label: 'Capture Photo',
-                              color: Colors.blue,
-                              onPressed: () async {
-                                final image = await captureImage();
-                                setState(() {
-                                  employee.profileImage = image!.path;
-                                  employee.employeePhoto = File(image.path);
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Center(
+              child: Button(
+                width: 180,
+                label: 'Capture Photo',
+                color: Colors.blue,
+                onPressed: () async {
+                  final image = await captureImage();
+                  setState(() {
+                    employee.profileImage = image!.path;
+                    employee.employeePhoto = File(image.path);
+                    localImage = File(image.path);
+                    isNetworkImage = false;
+                  });
+                },
               ),
             ),
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Button(label: 'Save', color: Colors.green, onPressed: save),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -428,43 +464,46 @@ class _EmployeeState extends State<Employee> {
       return;
     }
     if (employee.employeePhoto == null) {
-      showSnackBar(
-          context, 'Employee', 'Please take a selfie.', ContentType.failure);
+      showSnackBar(context, 'Employee', 'Please take a selfie.');
       return;
     }
     setState(() {
       _isSaving = true;
     });
-    employee.name = nameController.text;
-    if (employee.id == 0) {
-      await createEmployee(employee, employee.employeePhoto!).then((value) {
-        setState(() {
-          _isSaving = false;
+    try {
+      if (employee.id == 0) {
+        await createEmployee(employee, employee.employeePhoto!).then((value) {
+          setState(() {
+            _isSaving = false;
+          });
+          showSnackBar(context, 'Employee', 'Employee saved successfuly.');
+          Navigator.pop(context);
+        }).catchError((err) {
+          setState(() {
+            _isSaving = false;
+          });
+          showSnackBar(context, 'Employee', err.toString());
         });
-        showSnackBar(context, 'Employee', 'Employee saved successfuly.',
-            ContentType.success);
-        Navigator.pop(context);
-      }).catchError((err) {
-        setState(() {
-          _isSaving = false;
+      } else {
+        await updateEmployee(employee.id, employee, employee.employeePhoto!)
+            .then((value) {
+          setState(() {
+            _isSaving = false;
+          });
+          showSnackBar(context, 'Employee', 'Employee updated successfuly.');
+          Navigator.pop(context);
+        }).catchError((err) {
+          setState(() {
+            _isSaving = false;
+          });
+          showSnackBar(context, 'Employee', err.toString());
         });
-        showSnackBar(context, 'Employee', err.toString(), ContentType.failure);
+      }
+    } catch (e) {
+      setState(() {
+        _isSaving = false;
       });
-    } else {
-      await updateEmployee(employee.id, employee, employee.employeePhoto!)
-          .then((value) {
-        setState(() {
-          _isSaving = false;
-        });
-        showSnackBar(context, 'Employee', 'Employee updated successfuly.',
-            ContentType.success);
-        Navigator.pop(context);
-      }).catchError((err) {
-        setState(() {
-          _isSaving = false;
-        });
-        showSnackBar(context, 'Employee', err.toString(), ContentType.failure);
-      });
+      error = ErrorObject(title: 'Error', message: e.toString());
     }
   }
 

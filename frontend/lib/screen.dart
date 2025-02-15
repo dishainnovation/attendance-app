@@ -20,11 +20,11 @@ class _ScreenState extends State<Screen> {
   @override
   void initState() {
     super.initState();
+    user = context.read<User>().user!;
   }
 
   @override
   Widget build(BuildContext context) {
-    user = context.read<User>().user!;
     if (user == null) {
       return Scaffold(body: Center(child: CircularProgressIndicator()));
     } else {

@@ -45,7 +45,7 @@ Future<ShiftModel> createShift(ShiftModel shift) async {
 
 Future<ShiftModel> updateShift(int id, ShiftModel shift) async {
   try {
-    Uri uriPut = Uri.parse('$url?id=$id');
+    Uri uriPut = Uri.parse('$url$id/');
     var request = await http.put(uriPut, body: shift.toJson());
 
     if (request.statusCode == 200) {
@@ -79,6 +79,26 @@ ShiftModel getShiftByName(String name, List<ShiftModel> shifts) {
   return shifts.firstWhere((shift) => shift.name == name);
 }
 
+Future<List<ShiftModel>> getShiftById(int id) async {
+  try {
+    uri = Uri.parse('$url?id=$id');
+    final response =
+        await http.get(uri, headers: {"Accept": "application/json"});
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      List<ShiftModel> shifts = data.map((shift) {
+        return ShiftModel.fromJson(shift as Map<String, dynamic>);
+      }).toList();
+      return shifts;
+    } else {
+      throw Exception('Failed to load shifts: ${response.reasonPhrase}');
+    }
+  } catch (e) {
+    throw Exception('Error occurred: $e');
+  }
+}
+
 Future<List<ShiftModel>> getShiftsByPort(int portId) async {
   try {
     uri = Uri.parse('$url?port_id=$portId');
@@ -100,8 +120,16 @@ Future<List<ShiftModel>> getShiftsByPort(int portId) async {
 }
 
 Future<ShiftModel?> getCurrentShift(int portId, TimeOfDay time) async {
-  ShiftModel shift;
-  List<ShiftModel> shifts = await getShift();
-  shift = shifts.firstWhere((s) => s.port == portId); //
-  return shift;
+  try {
+    ShiftModel shift;
+    List<ShiftModel> shifts = await getShift();
+    shift = shifts.firstWhere((s) {
+      return s.port == portId &&
+          time.isAfter(s.startTime!) &&
+          time.isBefore(s.endTime!);
+    }); //
+    return shift;
+  } catch (e) {
+    return null;
+  }
 }

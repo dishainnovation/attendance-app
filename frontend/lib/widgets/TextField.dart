@@ -40,6 +40,7 @@ class Textfield extends StatelessWidget {
           color: Colors.white),
       padding: EdgeInsets.only(left: 5),
       child: TextFormField(
+        onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
         controller: controller,
         maxLines: maxLines,
         keyboardType: keyboardType,

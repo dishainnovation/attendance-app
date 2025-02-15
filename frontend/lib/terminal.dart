@@ -4,6 +4,7 @@ import 'package:frontend/Services/terminalService.dart';
 import 'package:frontend/widgets/dropdown.dart';
 import 'package:frontend/widgets/loading.dart';
 
+import 'Models/ErrorObject.dart';
 import 'Models/PortModel.dart';
 import 'Services/portService.dart';
 import 'Utility.dart';
@@ -21,6 +22,7 @@ class Terminal extends StatefulWidget {
 }
 
 class _TerminalState extends State<Terminal> {
+  ErrorObject error = ErrorObject(title: '', message: '');
   final formKey = GlobalKey<FormState>();
   String page = 'Terminal';
   bool _isSaving = false;
@@ -42,6 +44,8 @@ class _TerminalState extends State<Terminal> {
       setState(() {
         this.ports = ports;
       });
+    }).catchError((e) {
+      error = ErrorObject(title: 'Error', message: e.toString());
     });
   }
 
@@ -65,9 +69,10 @@ class _TerminalState extends State<Terminal> {
       site.portName = widget.selectedPort!.name;
     }
     return ScaffoldPage(
+      error: error,
       title: 'Terminal',
       body: SizedBox(
-        height: MediaQuery.of(context).size.height,
+        height: MediaQuery.of(context).size.height - 170,
         child: Stack(
           children: [
             form(site),
@@ -88,7 +93,7 @@ class _TerminalState extends State<Terminal> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 40),
+          SizedBox(height: 10),
           Card(
             color: Colors.white,
             child: Padding(
@@ -187,34 +192,41 @@ class _TerminalState extends State<Terminal> {
     setState(() {
       _isSaving = true;
     });
-    site.name = nameController.text;
-    site.latitude = double.parse(latitudeController.text);
-    site.longitude = double.parse(longitudeController.text);
-    site.geoFenceArea = int.parse(geoFenceController.text);
-    site.portName = ports.firstWhere((port) => port.id == site.port).name;
-    if (site.id == 0) {
-      await createSite(site).then((response) async {
-        setState(() {
-          _isSaving = false;
+    try {
+      site.name = nameController.text;
+      site.latitude = double.parse(latitudeController.text);
+      site.longitude = double.parse(longitudeController.text);
+      site.geoFenceArea = int.parse(geoFenceController.text);
+      site.portName = ports.firstWhere((port) => port.id == site.port).name;
+      if (site.id == 0) {
+        await createSite(site).then((response) async {
+          setState(() {
+            _isSaving = false;
+          });
+          await showMessageDialog(context, page, 'Terminal saved successfuly.');
+          Navigator.pop(context);
+        }).catchError((err) {
+          showMessageDialog(context, page, err.toString());
         });
-        await showMessageDialog(context, page, 'Terminal saved successfuly.');
-        Navigator.pop(context);
-      }).catchError((err) {
-        showMessageDialog(context, page, err.toString());
+      } else {
+        await updateSite(site.id, site).then((response) async {
+          setState(() {
+            _isSaving = false;
+          });
+          await showMessageDialog(context, page, 'Terminal saved successfuly.');
+          Navigator.pop(context);
+        }).catchError((err) {
+          setState(() {
+            _isSaving = false;
+          });
+          showMessageDialog(context, page, err.toString());
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isSaving = true;
       });
-    } else {
-      await updateSite(site.id, site).then((response) async {
-        setState(() {
-          _isSaving = false;
-        });
-        await showMessageDialog(context, page, 'Terminal saved successfuly.');
-        Navigator.pop(context);
-      }).catchError((err) {
-        setState(() {
-          _isSaving = false;
-        });
-        showMessageDialog(context, page, err.toString());
-      });
+      error = ErrorObject(title: 'Error', message: e.toString());
     }
   }
 }

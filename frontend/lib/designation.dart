@@ -4,6 +4,7 @@ import 'package:frontend/Models/Designation.dart';
 import 'package:frontend/Services/designationService.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 
+import 'Models/ErrorObject.dart';
 import 'Utility.dart';
 import 'widgets/Button.dart';
 import 'widgets/TextField.dart';
@@ -18,6 +19,7 @@ class Designation extends StatefulWidget {
 }
 
 class _DesignationState extends State<Designation> {
+  ErrorObject error = ErrorObject(title: '', message: '');
   final formKey = GlobalKey<FormState>();
   String page = 'Designation';
   bool isSaving = false;
@@ -38,66 +40,71 @@ class _DesignationState extends State<Designation> {
   @override
   Widget build(BuildContext context) {
     return ScaffoldPage(
+      error: error,
       title: page,
-      body: Form(
-          key: formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Card(
-                color: Colors.white,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Name'),
-                      Textfield(
-                        label: 'Name',
-                        controller: nameController,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter name';
-                          }
-                          return null;
-                        },
-                      ),
-                      DropDown(
-                        items: ['SUPER_ADMIN', 'ADMIN', 'USER'],
-                        initialItem: designation.user_type,
-                        title: 'Select Designation',
-                        onValueChanged: (value) {
-                          setState(() {
-                            designation.user_type = value;
-                          });
-                        },
-                      ),
-                      CheckboxListTile(
-                        title: Text('Remote Checkin'),
-                        subtitle:
-                            Text('Allow remote checkin for this designation'),
-                        value: designation.remote_checkin,
-                        onChanged: (value) {
-                          setState(() {
-                            designation.remote_checkin = value!;
-                          });
-                        },
-                      )
-                    ],
-                  ),
+      body: designationForm(),
+    );
+  }
+
+  Form designationForm() {
+    return Form(
+        key: formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Card(
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Name'),
+                    Textfield(
+                      label: 'Name',
+                      controller: nameController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter name';
+                        }
+                        return null;
+                      },
+                    ),
+                    DropDown(
+                      items: ['SUPER_ADMIN', 'ADMIN', 'USER'],
+                      initialItem: designation.user_type,
+                      title: 'Select Designation',
+                      onValueChanged: (value) {
+                        setState(() {
+                          designation.user_type = value;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: Text('Remote Checkin'),
+                      subtitle:
+                          Text('Allow remote checkin for this designation'),
+                      value: designation.remote_checkin,
+                      onChanged: (value) {
+                        setState(() {
+                          designation.remote_checkin = value!;
+                        });
+                      },
+                    )
+                  ],
                 ),
               ),
-              SizedBox(
-                height: 20,
-              ),
-              Button(
-                label: 'Save',
-                color: Colors.green,
-                onPressed: save,
-              ),
-            ],
-          )),
-    );
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            Button(
+              label: 'Save',
+              color: Colors.green,
+              onPressed: save,
+            ),
+          ],
+        ));
   }
 
   Future<void> save() async {
@@ -107,36 +114,43 @@ class _DesignationState extends State<Designation> {
     setState(() {
       isSaving = true;
     });
-    designation.name = nameController.text;
-    if (designation.id > 0) {
-      await updateDesignation(designation.id, designation)
-          .then((response) async {
-        setState(() {
-          isSaving = false;
+    try {
+      designation.name = nameController.text;
+      if (designation.id > 0) {
+        await updateDesignation(designation.id, designation)
+            .then((response) async {
+          setState(() {
+            isSaving = false;
+          });
+          await showMessageDialog(
+              context, page, 'Designation saved successfuly.');
+          Navigator.pop(context);
+        }).catchError((err) {
+          setState(() {
+            isSaving = false;
+          });
+          showMessageDialog(context, page, err.toString());
         });
-        await showMessageDialog(
-            context, page, 'Designation saved successfuly.');
-        Navigator.pop(context);
-      }).catchError((err) {
-        setState(() {
-          isSaving = false;
+      } else {
+        await createDesignation(designation).then((response) async {
+          setState(() {
+            isSaving = false;
+          });
+          await showMessageDialog(
+              context, page, 'Designation saved successfuly.');
+          Navigator.pop(context);
+        }).catchError((err) {
+          setState(() {
+            isSaving = false;
+          });
+          showMessageDialog(context, page, err.toString());
         });
-        showMessageDialog(context, page, err.toString());
+      }
+    } catch (e) {
+      setState(() {
+        isSaving = false;
       });
-    } else {
-      await createDesignation(designation).then((response) async {
-        setState(() {
-          isSaving = false;
-        });
-        await showMessageDialog(
-            context, page, 'Designation saved successfuly.');
-        Navigator.pop(context);
-      }).catchError((err) {
-        setState(() {
-          isSaving = false;
-        });
-        showMessageDialog(context, page, err.toString());
-      });
+      error = ErrorObject(title: 'Error', message: e.toString());
     }
   }
 }

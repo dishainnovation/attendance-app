@@ -5,6 +5,7 @@ import 'package:frontend/Services/designationService.dart';
 import 'package:frontend/designation.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 
+import 'Models/ErrorObject.dart';
 import 'Utility.dart';
 
 class DesignationsList extends StatefulWidget {
@@ -15,9 +16,11 @@ class DesignationsList extends StatefulWidget {
 }
 
 class _DesignationsListState extends State<DesignationsList> {
+  ErrorObject error = ErrorObject(title: '', message: '');
   @override
   Widget build(BuildContext context) {
     return ScaffoldPage(
+      error: error,
       title: 'Designation',
       floatingButton: FloatingActionButton(
         backgroundColor: Colors.green,
@@ -44,7 +47,7 @@ class _DesignationsListState extends State<DesignationsList> {
                   }),
             );
           } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
+            return Center(child: Text('Error: ${snapshot.error}'));
           } else {
             return Center(child: CircularProgressIndicator());
           }

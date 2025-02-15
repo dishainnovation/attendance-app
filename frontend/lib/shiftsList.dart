@@ -4,6 +4,7 @@ import 'package:frontend/Services/shiftService.dart';
 import 'package:frontend/shift.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 
+import 'Models/ErrorObject.dart';
 import 'Models/PortModel.dart';
 import 'Models/ShiftModel.dart';
 import 'Services/portService.dart';
@@ -19,20 +20,27 @@ class ShiftsList extends StatefulWidget {
 }
 
 class _ShiftsListState extends State<ShiftsList> {
+  ErrorObject error = ErrorObject(title: '', message: '');
   List<PortModel> ports = <PortModel>[];
   PortModel? selectedPort;
   Future<List<ShiftModel>>? futureShifts;
 
   getPorts() async {
-    await getPort().then((ports) {
-      setState(() {
-        this.ports = ports;
-        selectedPort = widget.port;
-        if (selectedPort != null) {
-          futureShifts = getShiftsByPort(selectedPort!.id);
-        }
+    try {
+      await getPort().then((ports) {
+        setState(() {
+          this.ports = ports;
+          selectedPort = widget.port;
+          if (selectedPort != null) {
+            futureShifts = getShiftsByPort(selectedPort!.id);
+          }
+        });
       });
-    });
+    } catch (e) {
+      setState(() {
+        error = ErrorObject(title: 'Error', message: e.toString());
+      });
+    }
   }
 
   @override
@@ -45,11 +53,13 @@ class _ShiftsListState extends State<ShiftsList> {
   Widget build(BuildContext context) {
     if (ports.isEmpty) {
       return ScaffoldPage(
+        error: error,
         title: 'Shifts List',
         body: Center(child: CircularProgressIndicator()),
       );
     }
     return ScaffoldPage(
+      error: error,
       title: 'Shifts List',
       floatingButton: FloatingActionButton(
         backgroundColor: Colors.green,
@@ -82,10 +92,10 @@ class _ShiftsListState extends State<ShiftsList> {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             if (snapshot.data!.isEmpty) {
-              return Center(child: Text('No ports found'));
+              return Center(child: Text('No shift found'));
             }
             return SizedBox(
-              height: MediaQuery.of(context).size.height * 0.8,
+              height: MediaQuery.of(context).size.height - 231,
               child: ListView.builder(
                   itemCount: snapshot.data!.length,
                   itemBuilder: (context, index) {
@@ -95,7 +105,9 @@ class _ShiftsListState extends State<ShiftsList> {
           } else if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
           } else {
-            return Center(child: CircularProgressIndicator());
+            return Center(
+              child: Text('Select Port'),
+            );
           }
         },
       ),

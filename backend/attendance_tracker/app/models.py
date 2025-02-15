@@ -79,3 +79,20 @@ class Attendance(models.Model):
     attendance_type = models.CharField(max_length=20, default='REGULAR')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'employee': self.employee.name,
+            'site': self.site.name,
+            'shift': self.shift.name,
+            'check_in_time': self.check_in_time,
+            'check_out_time': self.check_out_time,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+            'check_in_photo': self.check_in_photo.url,
+            'check_out_photo': self.check_out_photo.url,
+            'attendance_type': self.attendance_type,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+        }

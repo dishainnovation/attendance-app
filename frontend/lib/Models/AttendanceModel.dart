@@ -1,14 +1,16 @@
+import 'package:frontend/Utility.dart';
+
 class AttendanceModel {
   int id;
   DateTime attendanceDate;
   int employeeId; // Assuming you use the employee's ID
   int? siteId; // Nullable site ID
-  int shiftId;
+  int? shiftId;
   DateTime checkInTime;
   DateTime? checkOutTime; // Nullable checkout time
   double? latitude; // Nullable latitude
   double? longitude; // Nullable longitude
-  String checkInPhoto;
+  String? checkInPhoto;
   String? checkOutPhoto; // Nullable checkout photo
   String attendanceType;
 
@@ -31,9 +33,9 @@ class AttendanceModel {
     return AttendanceModel(
         id: int.parse(json['id'].toString()),
         attendanceDate: DateTime.parse(json['attendance_date']),
-        employeeId: json['employee_id'],
-        siteId: json['site_id'],
-        shiftId: json['shift_id'],
+        employeeId: json['employee'],
+        siteId: json['site'],
+        shiftId: json['shift'],
         checkInTime: DateTime.parse(json['check_in_time']),
         checkOutTime: json['check_out_time'] != null
             ? DateTime.parse(json['check_out_time'])
@@ -49,12 +51,12 @@ class AttendanceModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id.toString(),
-      'attendance_date': attendanceDate.toString(),
+      'attendance_date': formatDate(attendanceDate),
       'employee_id': employeeId,
       'site_id': siteId,
       'shift_id': shiftId,
-      'check_in_time': '${checkInTime.hour}:${checkInTime.minute}',
-      'check_out_time': '${checkOutTime!.hour}:${checkOutTime!.minute}',
+      'check_in_time': checkInTime,
+      'check_out_time': checkOutTime,
       'latitude': latitude,
       'longitude': longitude,
       'check_in_photo': checkInPhoto,

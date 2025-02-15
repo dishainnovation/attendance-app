@@ -17,6 +17,8 @@ Future<EmployeeModel> login(String userId, String password) async {
       Map<String, dynamic> data =
           jsonDecode(response.body) as Map<String, dynamic>;
       return EmployeeModel.fromJson(data);
+    } else if (response.statusCode == 401) {
+      throw Exception('Invalid credentials');
     } else {
       throw Exception('Failed to login');
     }

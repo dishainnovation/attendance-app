@@ -12,7 +12,7 @@ import 'package:frontend/shift.dart';
 import 'package:frontend/terminal.dart';
 import 'package:frontend/terminalsList.dart';
 
-import '../checkIn.dart';
+import '../attendance.dart';
 import '../employee.dart';
 import '../shiftsList.dart';
 

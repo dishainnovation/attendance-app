@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/widgets/errorFallback.dart';
 import 'package:frontend/widgets/unfocus.dart';
 
+import '../Models/ErrorObject.dart';
 import 'Appbar.dart';
 
 class ScaffoldPage extends StatelessWidget {
@@ -9,16 +11,19 @@ class ScaffoldPage extends StatelessWidget {
   final floatingButton;
   final Drawer? drawer;
   final PreferredSizeWidget? bottom;
+  final ErrorObject error;
   const ScaffoldPage(
       {super.key,
       this.body,
       required this.title,
       this.floatingButton,
       this.bottom,
-      this.drawer});
+      this.drawer,
+      required this.error});
 
   @override
   Widget build(BuildContext context) {
+    if (error.title.isNotEmpty) return ErrorFallback(error: error);
     return SafeArea(
         child: UnfocusOnTap(
       child: Scaffold(
@@ -32,11 +37,9 @@ class ScaffoldPage extends StatelessWidget {
               ),
         drawer: drawer,
         floatingActionButton: floatingButton,
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(12.0),
-            child: body,
-          ),
+        body: Padding(
+          padding: EdgeInsets.all(10.0),
+          child: body,
         ),
       ),
     ));

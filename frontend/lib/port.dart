@@ -6,6 +6,7 @@ import 'package:frontend/Utility.dart';
 import 'package:frontend/widgets/Button.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 
+import 'Models/ErrorObject.dart';
 import 'widgets/TextField.dart';
 import 'widgets/loading.dart';
 
@@ -18,6 +19,7 @@ class Port extends StatefulWidget {
 }
 
 class _PortState extends State<Port> {
+  ErrorObject error = ErrorObject(title: '', message: '');
   final formKey = GlobalKey<FormState>();
   String page = 'Port';
   bool isSaving = false;
@@ -40,9 +42,10 @@ class _PortState extends State<Port> {
   @override
   Widget build(BuildContext context) {
     return ScaffoldPage(
+      error: error,
       title: 'Port',
       body: SizedBox(
-        height: MediaQuery.of(context).size.height,
+        height: MediaQuery.of(context).size.height - 170,
         child: Stack(children: [
           form(port),
           isSaving ? LoadingWidget() : Container(),
@@ -57,7 +60,7 @@ class _PortState extends State<Port> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 40),
+          SizedBox(height: 10),
           Card(
             color: Colors.white,
             child: Padding(
@@ -111,34 +114,41 @@ class _PortState extends State<Port> {
     setState(() {
       isSaving = true;
     });
-    port.name = nameController.text;
-    port.location = locationController.text;
-    if (port.id > 0) {
-      await updatePort(port.id, port).then((response) async {
-        setState(() {
-          isSaving = false;
+    try {
+      port.name = nameController.text;
+      port.location = locationController.text;
+      if (port.id > 0) {
+        await updatePort(port.id, port).then((response) async {
+          setState(() {
+            isSaving = false;
+          });
+          await showMessageDialog(context, page, 'Port saved successfuly.');
+          Navigator.pop(context);
+        }).catchError((err) {
+          setState(() {
+            isSaving = false;
+          });
+          showMessageDialog(context, page, err.toString());
         });
-        await showMessageDialog(context, page, 'Port saved successfuly.');
-        Navigator.pop(context);
-      }).catchError((err) {
-        setState(() {
-          isSaving = false;
+      } else {
+        await createPort(port).then((response) async {
+          setState(() {
+            isSaving = false;
+          });
+          await showMessageDialog(context, page, 'Port saved successfuly.');
+          Navigator.pop(context);
+        }).catchError((err) {
+          setState(() {
+            isSaving = false;
+          });
+          showMessageDialog(context, page, err.toString());
         });
-        showMessageDialog(context, page, err.toString());
+      }
+    } catch (e) {
+      setState(() {
+        isSaving = false;
       });
-    } else {
-      await createPort(port).then((response) async {
-        setState(() {
-          isSaving = false;
-        });
-        await showMessageDialog(context, page, 'Port saved successfuly.');
-        Navigator.pop(context);
-      }).catchError((err) {
-        setState(() {
-          isSaving = false;
-        });
-        showMessageDialog(context, page, err.toString());
-      });
+      error = ErrorObject(title: 'Error', message: e.toString());
     }
   }
 }
