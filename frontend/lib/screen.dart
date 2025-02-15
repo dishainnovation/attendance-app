@@ -6,6 +6,8 @@ import 'package:frontend/userHome.dart';
 import 'package:provider/provider.dart';
 
 import 'Services/userNotifier.dart';
+import 'Utility.dart';
+import 'widgets/SpinKit.dart';
 
 class Screen extends StatefulWidget {
   const Screen({super.key});
@@ -26,7 +28,11 @@ class _ScreenState extends State<Screen> {
   @override
   Widget build(BuildContext context) {
     if (user == null) {
-      return Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+          body: Center(
+              child: SpinKit(
+        type: spinkitType,
+      )));
     } else {
       if (user!.designation!.user_type == 'SUPER_ADMIN') {
         return AdminHome();

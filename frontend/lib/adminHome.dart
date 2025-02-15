@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/Models/AttendanceModel.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:frontend/Models/ErrorObject.dart';
+import 'package:frontend/Services/attendanceService.dart';
 import 'package:frontend/Services/userNotifier.dart';
 import 'package:provider/provider.dart';
 import 'Services/navigationService.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 import 'package:frontend/widgets/tile.dart';
 
+import 'Utility.dart';
 import 'widgets/Button.dart';
 
 class AdminHome extends StatefulWidget {
@@ -22,6 +25,10 @@ class _AdminHomeState extends State<AdminHome> {
   List<Widget> functionTiles = [];
   List<Widget> reportsTiles = [];
   EmployeeModel? employee;
+  CurrentAttendance? attendance;
+  double? latitude;
+  double? longitude;
+  String locationName = '';
 
   getUser() {
     try {
@@ -35,16 +42,37 @@ class _AdminHomeState extends State<AdminHome> {
     }
   }
 
+  getLocation() async {
+    await getCurrentLocation().then((location) async {
+      await getCurrentAttendance(
+              employee!, location.latitude, location.longitude)
+          .then((att) {
+        setState(() {
+          attendance = att;
+        });
+      });
+      setState(() {
+        latitude = location.latitude;
+        longitude = location.longitude;
+      });
+      await getLocationName(location).then((value) => setState(() {
+            locationName = value;
+          }));
+    }).catchError((err) {
+      throw Exception('Location permission not granted');
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     getUser();
+    getLocation();
   }
 
   @override
   Widget build(BuildContext context) {
     setTiles();
-    Size screenSize = MediaQuery.of(context).size;
     return ScaffoldPage(
       error: error,
       title: 'Attendance Tracker',
@@ -52,21 +80,18 @@ class _AdminHomeState extends State<AdminHome> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          employee == null
-              ? Flexible(flex: 1, child: Container())
-              : employeeInfo(),
-          Divider(),
-          SizedBox(
-            height: screenSize.height * (functionTiles.length - 1) / 10,
-            width: screenSize.width,
+          employee == null ? Container() : employeeInfo(),
+          Divider(height: 20),
+          Flexible(
+            flex: 3,
+            fit: FlexFit.tight,
             child: functionGrid(),
           ),
           Divider(),
           Text('Reports'),
           SizedBox(height: 20),
-          SizedBox(
-            height: screenSize.height * 0.2,
-            width: screenSize.width,
+          Flexible(
+            flex: 2,
             child: reportsGrid(),
           ),
         ],
@@ -144,13 +169,17 @@ class _AdminHomeState extends State<AdminHome> {
                 ),
               ],
             ),
-            Button(
-              label: 'Check In',
-              color: Colors.blue,
-              onPressed: () {
-                NavigationService.navigateTo('/check-in');
-              },
-            ),
+            attendance != null
+                ? Button(
+                    label: attendance!.status == AttendanceStatus.CHECKED_IN
+                        ? 'Check Out'
+                        : 'Check In',
+                    color: Colors.blue,
+                    onPressed: () {
+                      NavigationService.navigateTo('/check-in');
+                    },
+                  )
+                : Container(),
           ],
         ),
       ],

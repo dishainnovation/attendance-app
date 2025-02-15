@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'Models/ErrorObject.dart';
 import 'Utility.dart';
 import 'widgets/ScaffoldPage.dart';
+import 'widgets/SpinKit.dart';
 
 class EmployeesList extends StatefulWidget {
   const EmployeesList({super.key});
@@ -20,6 +21,7 @@ class _EmployeesListState extends State<EmployeesList> {
   ErrorObject error = ErrorObject(title: '', message: '');
   List<EmployeeModel> allEmployeesList = [];
   List<EmployeeModel> filteredEmployeesList = [];
+  bool isLoading = false;
 
   filterItems(String query) {
     if (query.isEmpty) {
@@ -37,13 +39,18 @@ class _EmployeesListState extends State<EmployeesList> {
   }
 
   getData() async {
+    setState(() {
+      isLoading = true;
+    });
     await getEmployees().then((employees) {
       setState(() {
         allEmployeesList = employees;
         filteredEmployeesList = employees;
+        isLoading = false;
       });
     }).catchError((e) {
       setState(() {
+        isLoading = false;
         error = ErrorObject(title: 'Error', message: e.toString());
       });
     });
@@ -102,11 +109,16 @@ class _EmployeesListState extends State<EmployeesList> {
       ),
       body: SizedBox(
         height: MediaQuery.of(context).size.height - 231,
-        child: ListView.builder(
-            itemCount: filteredEmployeesList.length,
-            itemBuilder: (context, index) {
-              return employeeCard(filteredEmployeesList[index]);
-            }),
+        child: isLoading
+            ? Center(
+                child: SpinKit(
+                type: spinkitType,
+              ))
+            : ListView.builder(
+                itemCount: filteredEmployeesList.length,
+                itemBuilder: (context, index) {
+                  return employeeCard(filteredEmployeesList[index]);
+                }),
       ),
     );
   }

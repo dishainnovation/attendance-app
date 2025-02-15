@@ -1,3 +1,5 @@
+import 'package:frontend/Models/ShiftModel.dart';
+import 'package:frontend/Models/SiteModel.dart';
 import 'package:frontend/Utility.dart';
 
 class AttendanceModel {
@@ -64,4 +66,19 @@ class AttendanceModel {
       'attendance_type': attendanceType
     };
   }
+}
+
+enum AttendanceStatus { NEW, CHECKED_IN, CHECKED_OUT }
+
+class CurrentAttendance {
+  AttendanceModel attendance;
+  SiteModel site;
+  ShiftModel shift;
+  AttendanceStatus status = AttendanceStatus.NEW;
+
+  CurrentAttendance(
+      {required this.attendance,
+      required this.site,
+      required this.shift,
+      required this.status});
 }

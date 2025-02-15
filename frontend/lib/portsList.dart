@@ -8,6 +8,7 @@ import 'Models/ErrorObject.dart';
 import 'Models/PortModel.dart';
 import 'Services/portService.dart';
 import 'port.dart';
+import 'widgets/SpinKit.dart';
 
 class Portslist extends StatefulWidget {
   const Portslist({super.key});
@@ -55,7 +56,10 @@ class _PortslistState extends State<Portslist> {
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else {
-          return Center(child: CircularProgressIndicator());
+          return Center(
+              child: SpinKit(
+            type: spinkitType,
+          ));
         }
       },
     );

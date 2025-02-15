@@ -7,6 +7,7 @@ import 'package:frontend/widgets/ScaffoldPage.dart';
 
 import 'Models/ErrorObject.dart';
 import 'Utility.dart';
+import 'widgets/SpinKit.dart';
 
 class DesignationsList extends StatefulWidget {
   const DesignationsList({super.key});
@@ -49,7 +50,10 @@ class _DesignationsListState extends State<DesignationsList> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
-            return Center(child: CircularProgressIndicator());
+            return Center(
+                child: SpinKit(
+              type: spinkitType,
+            ));
           }
         },
       ),

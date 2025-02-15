@@ -13,6 +13,7 @@ import 'Services/designationService.dart';
 import 'Services/employeeService.dart';
 import 'Services/portService.dart';
 import 'Utility.dart';
+import 'widgets/SpinKit.dart';
 import 'widgets/TextField.dart';
 import 'widgets/dropdown.dart';
 import 'widgets/loading.dart';
@@ -53,13 +54,16 @@ class _EmployeeState extends State<Employee> {
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController mobileController = TextEditingController();
+  TextEditingController empCodeController = TextEditingController();
 
   getPorts() async {
     await getPort().then((ports) {
       setState(() {
         this.ports = ports;
-        employee.employeeCode =
-            generateEmployeeCode(user!.portName!, widget.employeeesList);
+        if (employee.employeeCode == '') {
+          employee.employeeCode =
+              generateEmployeeCode(user!.portName!, widget.employeeesList);
+        }
       });
     }).catchError((e) {
       error = ErrorObject(title: 'Error', message: e.toString());
@@ -92,6 +96,7 @@ class _EmployeeState extends State<Employee> {
       nameController.text = employee.name;
       passwordController.text = employee.password;
       mobileController.text = employee.mobileNumber;
+      empCodeController.text = employee.employeeCode;
       isNetworkImage = true;
     }
   }
@@ -105,7 +110,7 @@ class _EmployeeState extends State<Employee> {
         child: Stack(
           children: [
             SizedBox(
-                height: MediaQuery.of(context).size.height * 0.86,
+                height: MediaQuery.of(context).size.height * 0.8,
                 child: form(context, employee, user!)),
             _isSaving == true
                 ? Positioned.fill(
@@ -120,6 +125,7 @@ class _EmployeeState extends State<Employee> {
 
   Widget form(
       BuildContext context, EmployeeModel employee, EmployeeModel user) {
+    Size screenSize = MediaQuery.of(context).size;
     return Form(
       key: formKey,
       child: ListView.builder(
@@ -192,8 +198,7 @@ class _EmployeeState extends State<Employee> {
                       Textfield(
                         label: 'Code',
                         readOnly: true,
-                        controller:
-                            TextEditingController(text: employee.employeeCode),
+                        controller: empCodeController,
                         onFieldSubmitted: (value) {
                           setState(() {
                             employee.employeeCode = value;
@@ -231,7 +236,7 @@ class _EmployeeState extends State<Employee> {
                             children: [
                               Text('Gender'),
                               SizedBox(
-                                width: 150,
+                                width: screenSize.width * 0.3,
                                 child: DropDown(
                                   items: ['Male', 'Female'],
                                   initialItem: 'Male',
@@ -251,7 +256,7 @@ class _EmployeeState extends State<Employee> {
                               Text('Mobile Number'),
                               Textfield(
                                 label: 'Mobile Number',
-                                width: 200,
+                                width: screenSize.width * 0.4,
                                 controller: mobileController,
                                 onFieldSubmitted: (value) {
                                   setState(() {
@@ -281,7 +286,7 @@ class _EmployeeState extends State<Employee> {
                                 Textfield(
                                   label: 'Date of Birth',
                                   readOnly: true,
-                                  width: 160,
+                                  width: screenSize.width * 0.4,
                                   controller: TextEditingController(
                                     text: employee.dateOfBirth,
                                   ),
@@ -314,7 +319,7 @@ class _EmployeeState extends State<Employee> {
                                 Textfield(
                                   label: 'Hire Date',
                                   readOnly: true,
-                                  width: 160,
+                                  width: screenSize.width * 0.4,
                                   controller: TextEditingController(
                                     text: employee.dateOfJoining,
                                   ),
@@ -416,7 +421,9 @@ class _EmployeeState extends State<Employee> {
                               return child;
                             }
                             return Center(
-                              child: CircularProgressIndicator(),
+                              child: SpinKit(
+                                type: spinkitType,
+                              ),
                             );
                           },
                           errorBuilder: (context, error, stackTrace) {
