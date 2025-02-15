@@ -81,7 +81,7 @@ To manage the database connection, follow these steps:
 To run the Django project, navigate to the project directory (where `manage.py` is located) and use the following command:
 
 ```bash
-python manage.py runserver
+python manage.py runserver 0.0.0.0:8000
 ```
 
 The application will be available at `http://127.0.0.1:8000/`.
