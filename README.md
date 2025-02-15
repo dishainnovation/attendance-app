@@ -39,6 +39,43 @@ cd backend/attendance_tracker
 pip install -r requirements.txt
 ```
 
+### Managing Database Connection
+
+To manage the database connection, follow these steps:
+
+1. **Configure the Database Settings:**
+
+   Open the `settings.py` file in the Django project directory (`backend/attendance_tracker/attendance_tracker`). Locate the `DATABASES` section and configure it according to your database setup. For example:
+
+   ```python
+   DATABASES = {
+       'default': {
+           'ENGINE': 'django.db.backends.postgresql',  # Use 'django.db.backends.sqlite3' for SQLite
+           'NAME': 'your_database_name',
+           'USER': 'your_database_user',
+           'PASSWORD': 'your_database_password',
+           'HOST': 'your_database_host',  # Set to 'localhost' if the database is on the same machine
+           'PORT': 'your_database_port',  # Default is '5432' for PostgreSQL
+       }
+   }
+   ```
+
+2. **Apply Migrations:**
+
+   After configuring the database settings, apply the migrations to create the necessary database tables.
+
+   ```bash
+   python manage.py migrate
+   ```
+
+3. **Create a Superuser:**
+
+   Create a superuser to access the Django admin interface.
+
+   ```bash
+   python manage.py createsuperuser
+   ```
+
 ### Running the Project
 
 To run the Django project, navigate to the project directory (where `manage.py` is located) and use the following command:
@@ -66,12 +103,4 @@ deactivate
 python manage.py migrate
 ```
 
-- Create a superuser to access the Django admin interface:
-
-```bash
-python manage.py createsuperuser
-```
-
-## License
-
-This project is licensed under the MIT License.
+- Create a superuser to access the Django admin ▋
