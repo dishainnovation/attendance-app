@@ -1,11 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:frontend/Services/userNotifier.dart';
 import 'package:frontend/screen.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'Utility.dart';
 import 'register.dart';
@@ -37,10 +34,9 @@ class _LoginState extends State<Login> {
 
     try {
       final user = await login(userIdController.text, passwordController.text);
+
       context.read<User>().user = EmployeeModel.fromJson(user.toJson());
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove('user_data');
-      await prefs.setString('user_data', json.encode(user.toJson()));
+      storeUserInfo(user);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => Screen()),

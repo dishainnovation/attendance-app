@@ -1,16 +1,22 @@
+import 'dart:io';
+
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/AttendanceModel.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:frontend/Models/ErrorObject.dart';
 import 'package:frontend/Services/attendanceService.dart';
 import 'package:frontend/Services/userNotifier.dart';
+import 'package:frontend/widgets/SpinKit.dart';
 import 'package:provider/provider.dart';
+import 'Services/employeeService.dart';
 import 'Services/navigationService.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 import 'package:frontend/widgets/tile.dart';
 
 import 'Utility.dart';
 import 'widgets/Button.dart';
+import 'widgets/TakePicture.dart';
 
 class AdminHome extends StatefulWidget {
   const AdminHome({super.key});
@@ -29,6 +35,8 @@ class _AdminHomeState extends State<AdminHome> {
   double? latitude;
   double? longitude;
   String locationName = '';
+  bool isProfileCompleted = false;
+  bool isLoading = false;
 
   getUser() {
     try {
@@ -59,8 +67,20 @@ class _AdminHomeState extends State<AdminHome> {
             locationName = value;
           }));
     }).catchError((err) {
-      throw Exception('Location permission not granted');
+      throw Exception(err);
     });
+  }
+
+  checkProfile() {
+    if (employee!.profileImage == null) {
+      setState(() {
+        isProfileCompleted = false;
+      });
+    } else {
+      setState(() {
+        isProfileCompleted = true;
+      });
+    }
   }
 
   @override
@@ -68,6 +88,7 @@ class _AdminHomeState extends State<AdminHome> {
     super.initState();
     getUser();
     getLocation();
+    checkProfile();
   }
 
   @override
@@ -80,7 +101,7 @@ class _AdminHomeState extends State<AdminHome> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          employee == null ? Container() : employeeInfo(),
+          employee == null ? Container() : employeeInfo(context),
           Divider(height: 20),
           Flexible(
             flex: 3,
@@ -136,7 +157,7 @@ class _AdminHomeState extends State<AdminHome> {
     );
   }
 
-  Widget employeeInfo() {
+  Widget employeeInfo(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -298,5 +319,69 @@ class _AdminHomeState extends State<AdminHome> {
         ),
       ),
     ];
+  }
+
+  Widget completeProfile(BuildContext context) {
+    return isLoading
+        ? SpinKit(
+            type: SpinType.PouringHourGlassRefined,
+            size: 40,
+          )
+        : SizedBox(
+            width: MediaQuery.of(context).size.width * 0.5,
+            child: Column(
+              children: [
+                Text(
+                  'Please update your profile photo before check-in/check-out.',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+                Button(
+                  label: 'Capture Photo',
+                  color: Colors.blue,
+                  width: MediaQuery.of(context).size.width * 0.5,
+                  onPressed: () async {
+                    setState(() {
+                      isLoading = true;
+                    });
+                    final cameras = await availableCameras();
+                    final preferedtCamera = cameras[1];
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(
+                            builder: (context) =>
+                                TakePictureScreen(camera: preferedtCamera)))
+                        .then((value) async {
+                      if (value != null) {
+                        employee!.profileImage = value.toString();
+                        employee!.employeePhoto = File(value.toString());
+                        await updateEmployee(employee!.id, employee!,
+                                employee!.employeePhoto!)
+                            .then((value) async {
+                          context.read<User>().user =
+                              EmployeeModel.fromJson(employee!.toJson());
+                          storeUserInfo(employee!);
+                          await getLocation();
+                          setState(() {
+                            employee = context.read<User>().user!;
+                            isProfileCompleted = true;
+                            isLoading = false;
+                          });
+                        }).catchError((err) {
+                          showSnackBar(context, 'Employee', err.toString());
+                        });
+                      } else {
+                        setState(() {
+                          isLoading = false;
+                        });
+                      }
+                    });
+                  },
+                ),
+              ],
+            ),
+          );
   }
 }

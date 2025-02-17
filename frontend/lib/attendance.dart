@@ -437,9 +437,13 @@ class _CheckInState extends State<CheckIn> {
                       .push(MaterialPageRoute(
                           builder: (context) =>
                               TakePictureScreen(camera: preferedtCamera)))
-                      .then((value) => setState(() {
-                            image = File(value);
-                          }));
+                      .then((value) {
+                    if (value != null) {
+                      setState(() {
+                        image = File(value);
+                      });
+                    }
+                  });
                 },
               ),
             ],
