@@ -1,6 +1,8 @@
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.shortcuts import render, get_object_or_404
+from django.db.models.deletion import ProtectedError
 from .models import Designation
 from .serializers import DesignationSerializer
 
@@ -36,5 +38,10 @@ def designation_list(request):
             designation = Designation.objects.get(id=id)
         except Designation.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        designation.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            designation.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except ProtectedError as e:
+            referenced_objects = [str(obj) for obj in e.protected_objects]
+            error_message = f"Cannot delete Designation '{designation.name}' because it is referenced by the following employees: {', '.join(referenced_objects)}. Please reassign or remove these references before attempting to delete."
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'error_message': error_message})

@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.db.models.deletion import ProtectedError
 from .models import Port, Port
 from .serializers import PortSerializer
 
@@ -30,5 +31,9 @@ def port_list(request):
     elif request.method == 'DELETE':
         id = request.GET.get('id')
         port = Port.objects.get(id=id)
-        port.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            port.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except ProtectedError as e:
+            error_message = f"Cannot delete Port '{port.name}' because it has associated records. Please remove those records before attempting to delete."
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'error_message': error_message})

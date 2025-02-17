@@ -66,11 +66,13 @@ Future<String> deletePort(int id) async {
 
     if (request.statusCode == 204) {
       return 'Port deleted successfuly.';
+    } else if (request.statusCode == 400) {
+      throw Exception(jsonDecode(request.body)['error_message'].toString());
     } else {
       throw Exception('Failed to save port: ${request.reasonPhrase}');
     }
   } catch (e) {
-    throw Exception('Error occurred: $e');
+    rethrow;
   }
 }
 

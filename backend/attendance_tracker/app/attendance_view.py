@@ -65,7 +65,6 @@ def attendance_list(request):
         
         employee_id = request.data['employee_id']
         employee = Employee.objects.get(id=employee_id)
-        print(employee)
         user_image = request.FILES.get('user_photo')
         match = compare(user_image, employee.profile_image)
 
@@ -95,35 +94,32 @@ def attendance_list(request):
                 
         attendance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
+    
 def compare(image1, image2):
-    file1 = image1
-    file2 = image2
-
     try:
-        # Read image files
-        image1 = Image.open(io.BytesIO(file1.read()))
-        image2 = Image.open(io.BytesIO(file2.read()))
+        # Read and process the images
+        def process_image(image_file):
+            image = Image.open(io.BytesIO(image_file.read()))
+            image = correct_image_orientation(image)
+            return np.array(image)
+        
+        image_array1 = process_image(image1)
+        image_array2 = process_image(image2)
 
-        # Correct orientation
-        image1 = correct_image_orientation(image1)
-        image2 = correct_image_orientation(image2)
-
-        # Convert images to numpy arrays
-        image1 = np.array(image1)
-        image2 = np.array(image2)
-
-        encodings1 = face_recognition.face_encodings(image1)
-        encodings2 = face_recognition.face_encodings(image2)
+        # Compute face encodings
+        encodings1 = face_recognition.face_encodings(image_array1)
+        encodings2 = face_recognition.face_encodings(image_array2)
 
         if len(encodings1) == 0 or len(encodings2) == 0:
             return {'match': False}
 
+        # Compare faces
         result = face_recognition.compare_faces([encodings1[0]], encodings2[0])
         return {'match': bool(result[0])}  # Ensure the boolean value is serialized correctly
+
     except Exception as e:
         return {'match': False}, 500
-    
+
 def correct_image_orientation(image):
     try:
         for orientation in ExifTags.TAGS.keys():
@@ -151,9 +147,10 @@ def attendance_object(attendance):
     
     return {
         'id': attendance.id,
-        'employee': attendance.employee.name,
-        'site': attendance.site.name,
-        'shift': attendance.shift.name,
+        'employee': attendance.employee.id,
+        'attendance_date': attendance.attendance_date,
+        'site': attendance.site.id,
+        'shift': attendance.shift.id,
         'check_in_time': attendance.check_in_time,
         'check_out_time': attendance.check_out_time,
         'latitude': attendance.latitude,

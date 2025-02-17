@@ -21,7 +21,7 @@ class Employee(models.Model):
     date_of_joining = models.DateField()
     mobile_number = models.CharField(max_length=20, blank=True, null=True)
     password = models.CharField(max_length=255)
-    designation = models.ForeignKey(Designation, on_delete=models.CASCADE)
+    designation = models.ForeignKey(Designation, on_delete=models.PROTECT)
     profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
     port = models.ForeignKey(Port, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -48,7 +48,7 @@ class Employee(models.Model):
 
 
 class Site(models.Model):
-    port = models.ForeignKey(Port, on_delete=models.CASCADE)
+    port = models.ForeignKey(Port, on_delete=models.PROTECT)
     name = models.CharField(max_length=100)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
@@ -57,7 +57,7 @@ class Site(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 class Shift(models.Model):
-    port = models.ForeignKey(Port, on_delete=models.CASCADE)
+    port = models.ForeignKey(Port, on_delete=models.PROTECT)
     name = models.CharField(max_length=100)
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -67,9 +67,9 @@ class Shift(models.Model):
 
 class Attendance(models.Model):
     attendance_date = models.DateField(default=None)
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.PROTECT)
     site = models.ForeignKey(Site, on_delete=models.SET_NULL, null=True, blank=True)
-    shift = models.ForeignKey(Shift, on_delete=models.CASCADE)
+    shift = models.ForeignKey(Shift, on_delete=models.PROTECT)
     check_in_time = models.DateTimeField()
     check_out_time = models.DateTimeField(null=True, blank=True)
     latitude = models.FloatField(null=True, blank=True)

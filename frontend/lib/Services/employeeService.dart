@@ -96,7 +96,7 @@ Future<bool> updateEmployee(int id, EmployeeModel employee, File file) async {
         ),
       );
 
-      http.StreamedResponse response = await request.send();
+      http.StreamedResponse response = await client.send(request);
 
       if (response.statusCode == 200) {
         return true;
@@ -132,15 +132,17 @@ Future<bool> updateEmployee(int id, EmployeeModel employee, File file) async {
 Future<String> deleteEmployee(int id) async {
   try {
     Uri uriPut = Uri.parse('$url?id=$id');
-    var request = await http.delete(uriPut);
+    var request = await client.delete(uriPut);
 
     if (request.statusCode == 204) {
       return 'Employee deleted successfuly.';
+    } else if (request.statusCode == 400) {
+      throw Exception(jsonDecode(request.body)['error_message'].toString());
     } else {
       throw Exception('Failed to delete Employee: ${request.reasonPhrase}');
     }
   } catch (e) {
-    throw Exception('Error occurred: $e');
+    rethrow;
   }
 }
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
+import 'package:frontend/widgets/SpinKit.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -14,6 +15,8 @@ import 'dart:math' as math;
 String url = 'http://192.168.0.102:8000';
 String baseUrl = '${url}/api/';
 String baseImageUrl = url;
+
+SpinType spinkitType = SpinType.WaveSpinner;
 
 Future<void> save(String name, double distance, File? image1) async {
   final position = await getCurrentLocation();
@@ -40,7 +43,10 @@ Future<dynamic> load() async {
 
 Future<File?> captureImage() async {
   final ImagePicker picker = ImagePicker();
-  final pickedFile = await picker.pickImage(source: ImageSource.camera);
+  final pickedFile = await picker.pickImage(
+    source: ImageSource.camera,
+    preferredCameraDevice: CameraDevice.front,
+  );
   if (pickedFile != null) {
     return File(pickedFile.path);
   } else {

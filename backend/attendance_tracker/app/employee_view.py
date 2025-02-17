@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.db.models.deletion import ProtectedError
 from .models import Designation, Employee, Port
 from django.http import JsonResponse
 
@@ -69,9 +70,13 @@ def employee_list(request):
             employee = Employee.objects.get(id=id)
         except Employee.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        employee.delete()
         
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            employee.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except ProtectedError as e:
+            error_message = f"Cannot delete Employee '{employee.name}' because he has Attendance records. Please remove the Attendance records before attempting to delete."
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'error_message': error_message})
 
 @api_view(['GET'])
 def employee_view(request):

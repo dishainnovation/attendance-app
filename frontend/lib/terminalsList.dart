@@ -9,6 +9,7 @@ import 'Models/SiteModel.dart';
 import 'Services/portService.dart';
 import 'Services/terminalService.dart';
 import 'Utility.dart';
+import 'widgets/SpinKit.dart';
 import 'widgets/dropdown.dart';
 
 class TerminalsList extends StatefulWidget {
@@ -55,7 +56,10 @@ class _TerminalsListState extends State<TerminalsList> {
       return ScaffoldPage(
         error: error,
         title: 'Terminals List',
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(
+            child: SpinKit(
+          type: spinkitType,
+        )),
       );
     }
     return ScaffoldPage(
@@ -115,7 +119,6 @@ class _TerminalsListState extends State<TerminalsList> {
                 return Center(
                   child: Text('Select Port'),
                 );
-                // return Center(child: CircularProgressIndicator());
               }
             }),
       ),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../Utility.dart';
+import 'SpinKit.dart';
+
 class LoadingWidget extends StatelessWidget {
   final String message;
 
@@ -13,7 +16,9 @@ class LoadingWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            CircularProgressIndicator(),
+            SpinKit(
+              type: spinkitType,
+            ),
             SizedBox(height: 16.0),
             Text(
               message,

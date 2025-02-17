@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'Models/ErrorObject.dart';
 import 'Utility.dart';
 import 'widgets/ScaffoldPage.dart';
+import 'widgets/SpinKit.dart';
 
 class EmployeesList extends StatefulWidget {
   const EmployeesList({super.key});
@@ -20,6 +21,7 @@ class _EmployeesListState extends State<EmployeesList> {
   ErrorObject error = ErrorObject(title: '', message: '');
   List<EmployeeModel> allEmployeesList = [];
   List<EmployeeModel> filteredEmployeesList = [];
+  bool isLoading = false;
 
   filterItems(String query) {
     if (query.isEmpty) {
@@ -37,13 +39,18 @@ class _EmployeesListState extends State<EmployeesList> {
   }
 
   getData() async {
+    setState(() {
+      isLoading = true;
+    });
     await getEmployees().then((employees) {
       setState(() {
         allEmployeesList = employees;
         filteredEmployeesList = employees;
+        isLoading = false;
       });
     }).catchError((e) {
       setState(() {
+        isLoading = false;
         error = ErrorObject(title: 'Error', message: e.toString());
       });
     });
@@ -102,11 +109,16 @@ class _EmployeesListState extends State<EmployeesList> {
       ),
       body: SizedBox(
         height: MediaQuery.of(context).size.height - 231,
-        child: ListView.builder(
-            itemCount: filteredEmployeesList.length,
-            itemBuilder: (context, index) {
-              return employeeCard(filteredEmployeesList[index]);
-            }),
+        child: isLoading
+            ? Center(
+                child: SpinKit(
+                type: spinkitType,
+              ))
+            : ListView.builder(
+                itemCount: filteredEmployeesList.length,
+                itemBuilder: (context, index) {
+                  return employeeCard(filteredEmployeesList[index]);
+                }),
       ),
     );
   }
@@ -238,30 +250,30 @@ class _EmployeesListState extends State<EmployeesList> {
                       TextButton(
                         child: Text('Approve'),
                         onPressed: () async {
-                          Navigator.of(context).pop();
-                          await deleteEmployee(employee.id)
-                              .then((result) async {
-                            await showMessageDialog(
-                                context, 'Employee', result);
-                            setState(() {});
-                          }).catchError(
-                            (err) {
-                              showMessageDialog(
-                                  context, 'Employee', err.toString());
-                            },
-                          );
+                          Navigator.of(context).pop(true);
                         },
                       ),
                       TextButton(
                         child: Text('Cancel'),
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          Navigator.of(context).pop(false);
                         },
                       ),
                     ],
                   );
                 },
-              );
+              ).then((value) async {
+                if (value) {
+                  await deleteEmployee(employee.id).then((result) async {
+                    await showMessageDialog(context, 'Employee', result);
+                    getData();
+                  }).catchError(
+                    (err) {
+                      showMessageDialog(context, 'Employee', err.toString());
+                    },
+                  );
+                }
+              });
             },
             child: Icon(
               Icons.delete,

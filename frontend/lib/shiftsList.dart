@@ -9,6 +9,7 @@ import 'Models/PortModel.dart';
 import 'Models/ShiftModel.dart';
 import 'Services/portService.dart';
 import 'Utility.dart';
+import 'widgets/SpinKit.dart';
 import 'widgets/dropdown.dart';
 
 class ShiftsList extends StatefulWidget {
@@ -55,7 +56,10 @@ class _ShiftsListState extends State<ShiftsList> {
       return ScaffoldPage(
         error: error,
         title: 'Shifts List',
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(
+            child: SpinKit(
+          type: spinkitType,
+        )),
       );
     }
     return ScaffoldPage(
@@ -99,7 +103,7 @@ class _ShiftsListState extends State<ShiftsList> {
               child: ListView.builder(
                   itemCount: snapshot.data!.length,
                   itemBuilder: (context, index) {
-                    return ShiftCard(snapshot.data![index]);
+                    return shiftCard(context, snapshot.data![index]);
                   }),
             );
           } else if (snapshot.hasError) {
@@ -114,7 +118,7 @@ class _ShiftsListState extends State<ShiftsList> {
     );
   }
 
-  Widget ShiftCard(ShiftModel shift) {
+  Widget shiftCard(BuildContext context, ShiftModel shift) {
     return Card(
       color: Colors.white,
       child: ListTile(
@@ -170,7 +174,7 @@ class _ShiftsListState extends State<ShiftsList> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Duration Hours',
+                      'Duration',
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                     Text(

@@ -12,7 +12,7 @@ import 'Services/attendanceService.dart';
 import 'Services/userNotifier.dart';
 import 'Utility.dart';
 import 'attendance.dart';
-import 'register.dart';
+import 'employee.dart';
 import 'widgets/Button.dart';
 import 'widgets/ScaffoldPage.dart';
 
@@ -111,7 +111,7 @@ class _UserHomeState extends State<UserHome> {
       body: Column(
         children: [
           Expanded(
-            flex: 8,
+            flex: 6,
             child: Container(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -252,12 +252,14 @@ class _UserHomeState extends State<UserHome> {
         InkWell(
           onTap: () {
             Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => RegisterPage(
-                          isProfile: true,
-                          employee: user!,
-                        )));
+              context,
+              MaterialPageRoute(
+                builder: (context) => Employee(
+                  employee: user,
+                  employeeesList: [],
+                ),
+              ),
+            );
           },
           child: Card(
             color: Colors.green,
