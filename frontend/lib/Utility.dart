@@ -1,87 +1,30 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
+import 'package:frontend/widgets/SpinKit.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math' as math;
 
-String url = 'http://192.168.0.102:8000';
+String url = 'http://192.168.0.100:8000';
 String baseUrl = '${url}/api/';
 String baseImageUrl = url;
 
-Future<void> save(String name, double distance, File? image1) async {
-  final position = await getCurrentLocation();
+SpinType spinkitType = SpinType.WaveSpinner;
+
+storeUserInfo(EmployeeModel user) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  final data = {
-    'name': name,
-    'image': image1!.path,
-    'latitude': position.latitude,
-    'longitude': position.longitude
-  };
-  await prefs.setString('data', json.encode(data));
-}
-
-Future<dynamic> load() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  final data = prefs.getString('data');
-  if (data != null) {
-    final decodedData = json.decode(data);
-    return decodedData;
-  } else {
-    return null;
-  }
-}
-
-Future<File?> captureImage() async {
-  final ImagePicker picker = ImagePicker();
-  final pickedFile = await picker.pickImage(source: ImageSource.camera);
-  if (pickedFile != null) {
-    return File(pickedFile.path);
-  } else {
-    return File('');
-  }
-}
-
-Future compareImages(File? image1, File? image2) async {
-  try {
-    if (image1 != null && image2 != null) {
-      var request = http.MultipartRequest(
-          'POST', Uri.parse('http://192.168.0.100:5000/imagecompare'));
-      request.files
-          .add(await http.MultipartFile.fromPath('image1', image1.path));
-      request.files
-          .add(await http.MultipartFile.fromPath('image2', image2.path));
-
-      http.StreamedResponse response = await request.send();
-
-      if (response.statusCode == 200) {
-        var responseData = await response.stream.bytesToString();
-        var responseJson = json.decode(responseData);
-        if (responseJson.containsKey('match')) {
-          return responseJson['match']
-              ? 'Images match!'
-              : 'Images do not match.';
-        } else {
-          throw Exception('Invalid response format');
-        }
-      } else {
-        throw Exception(response.reasonPhrase);
-      }
-    }
-  } catch (e) {
-    throw Exception('Error comparing images: $e');
-  }
+  await prefs.remove('user_data');
+  await prefs.setString('user_data', json.encode(user.toJson()));
 }
 
 Future<Position> getCurrentLocation() async {
   // Check permissions
-  if (await Permission.location.request().isGranted) {
+  bool permission = await Permission.location.request().isGranted;
+  if (permission) {
     // Get the current location
     Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);

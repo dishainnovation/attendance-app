@@ -43,13 +43,21 @@ class _PortState extends State<Port> {
   Widget build(BuildContext context) {
     return ScaffoldPage(
       error: error,
-      title: 'Port',
-      body: SizedBox(
-        height: MediaQuery.of(context).size.height - 170,
-        child: Stack(children: [
-          form(port),
-          isSaving ? LoadingWidget() : Container(),
-        ]),
+      title: page,
+      body: SingleChildScrollView(
+        child: Stack(
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.8,
+              child: form(port),
+            ),
+            isSaving == true
+                ? Positioned.fill(
+                    child: LoadingWidget(message: 'Saving...'),
+                  )
+                : Container(),
+          ],
+        ),
       ),
     );
   }
@@ -57,53 +65,57 @@ class _PortState extends State<Port> {
   Widget form(PortModel port) {
     return Form(
       key: formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 10),
-          Card(
-            color: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Name'),
-                  Textfield(
-                    label: 'Name',
-                    controller: nameController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter name';
-                      }
-                      return null;
-                    },
+      child: ListView.builder(
+          itemCount: 1,
+          itemBuilder: (BuildContext context, int index) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 10),
+                Card(
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Name'),
+                        Textfield(
+                          label: 'Name',
+                          controller: nameController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter name';
+                            }
+                            return null;
+                          },
+                        ),
+                        Text('Location'),
+                        Textfield(
+                          label: 'Location',
+                          controller: locationController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter location';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                  Text('Location'),
-                  Textfield(
-                    label: 'Location',
-                    controller: locationController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter location';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(
-            height: 20,
-          ),
-          Button(
-            label: 'Save',
-            color: Colors.green,
-            onPressed: save,
-          ),
-        ],
-      ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Button(
+                  label: 'Save',
+                  color: Colors.green,
+                  onPressed: save,
+                ),
+              ],
+            );
+          }),
     );
   }
 

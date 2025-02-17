@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 import 'package:provider/provider.dart';
+import 'Models/AttendanceModel.dart';
 import 'Models/ErrorObject.dart';
+import 'Services/attendanceService.dart';
 import 'Services/navigationService.dart';
 import 'Services/userNotifier.dart';
 import 'Models/EmployeeModel.dart';
+import 'Utility.dart';
+import 'widgets/Button.dart';
 import 'widgets/tile.dart';
 
 class HomePage extends StatefulWidget {
@@ -20,60 +24,130 @@ class _HomePageState extends State<HomePage> {
   List<Widget> functionTiles = [];
   List<Widget> reportsTiles = [];
   EmployeeModel? user;
+  CurrentAttendance? attendance;
+  double? latitude;
+  double? longitude;
+  String locationName = '';
+
+  getUser() {
+    try {
+      setState(() {
+        user = context.read<User>().user!;
+      });
+    } catch (e) {
+      setState(() {
+        error = ErrorObject(title: 'Error', message: e.toString());
+      });
+    }
+  }
+
+  getLocation() async {
+    await getCurrentLocation().then((location) async {
+      await getCurrentAttendance(user!, location.latitude, location.longitude)
+          .then((att) {
+        setState(() {
+          attendance = att;
+        });
+      });
+      setState(() {
+        latitude = location.latitude;
+        longitude = location.longitude;
+      });
+      await getLocationName(location).then((value) => setState(() {
+            locationName = value;
+          }));
+    }).catchError((err) {
+      setState(() {
+        error = ErrorObject(title: 'Error', message: err.toString());
+      });
+    });
+  }
 
   @override
   void initState() {
     super.initState();
+    getUser();
+    if (user != null) {
+      getLocation();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    user = context.read<User>().user!;
     setTiles(context);
     return ScaffoldPage(
       error: error,
       title: 'Attendance Tracker',
-      body: homeContent(),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          user == null ? Flexible(flex: 1, child: Container()) : employeeInfo(),
+          Divider(),
+          SizedBox(height: 10),
+          ...homeContent(),
+        ],
+      ),
     );
   }
 
-  Column homeContent() {
+  Widget employeeInfo() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        user == null
-            ? Container()
-            : Text(
-                'Welcome ${user!.name}',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-        Container(
-          padding: const EdgeInsets.all(5.0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5.0),
-            color: Colors.green,
-          ),
-          child: user == null
-              ? Container()
-              : Text(
+        Text(
+          'Welcome ${user!.name}',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        SizedBox(
+          height: 5,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Designation:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                ),
+                Text(
                   user!.designation!.name.toString(),
                   style: TextStyle(
                     fontWeight: FontWeight.normal,
-                    fontSize: 14,
-                    color: Colors.white,
+                    color: Colors.grey,
                   ),
                 ),
+              ],
+            ),
+            attendance == null
+                ? Container()
+                : Button(
+                    label: attendance!.status == AttendanceStatus.CHECKED_IN
+                        ? 'Check Out'
+                        : 'Check In',
+                    color: Colors.blue,
+                    onPressed: () {
+                      NavigationService.navigateTo('/check-in');
+                    },
+                  ),
+          ],
         ),
-        SizedBox(height: 30),
-        Divider(),
-        SizedBox(height: 10),
-        functionGrid(),
-        Divider(),
-        Text('Reports'),
-        SizedBox(height: 20),
-        reportsGrid(),
       ],
     );
+  }
+
+  List<Widget> homeContent() {
+    return [
+      functionGrid(),
+      Divider(),
+      Text('Reports'),
+      SizedBox(height: 20),
+      reportsGrid(),
+    ];
   }
 
   Widget functionGrid() {

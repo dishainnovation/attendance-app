@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/splashScreen.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,9 +15,13 @@ Future<void> main() async {
   final String? data = prefs.getString('user_data');
 
   final bool isLoggedIn = data != null;
-
-  runApp(ChangeNotifierProvider(
-      create: (context) => User(), child: MyApp(isLoggedIn: isLoggedIn)));
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]).then((_) {
+    runApp(ChangeNotifierProvider(
+        create: (context) => User(), child: MyApp(isLoggedIn: isLoggedIn)));
+  });
 }
 
 class MyApp extends StatelessWidget {

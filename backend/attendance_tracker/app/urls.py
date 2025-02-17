@@ -13,7 +13,7 @@ urlpatterns = [
     path('employee/', employee_view.employee_list),
     path('employee/<int:id>/', employee_view.employee_view),
     path('port/', port_view.port_list),
-    path('shift/<int:id>/', shift_view.shift_view),
+    # path('shift/<int:id>/', shift_view.shift_view),
     path('', include(router.urls)),
     path('attendance/', attendance_view.attendance_list),
 ]

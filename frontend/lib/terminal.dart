@@ -71,11 +71,13 @@ class _TerminalState extends State<Terminal> {
     return ScaffoldPage(
       error: error,
       title: 'Terminal',
-      body: SizedBox(
-        height: MediaQuery.of(context).size.height - 170,
+      body: SingleChildScrollView(
         child: Stack(
           children: [
-            form(site),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.8,
+              child: form(site),
+            ),
             _isSaving == true
                 ? Positioned.fill(
                     child: LoadingWidget(message: 'Saving...'),
