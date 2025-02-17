@@ -54,6 +54,7 @@ class RouteGenerator {
                 ));
       case '/check-in':
         return MaterialPageRoute(builder: (_) => CheckIn());
+
       default:
         return errorRoute();
     }

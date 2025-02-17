@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/AttendanceModel.dart';
 import 'package:frontend/Models/ErrorObject.dart';
@@ -14,6 +15,7 @@ import 'Services/attendanceService.dart';
 import 'Services/userNotifier.dart';
 import 'Utility.dart';
 import 'widgets/Button.dart';
+import 'widgets/TakePicture.dart';
 import 'widgets/loading.dart';
 
 class CheckIn extends StatefulWidget {
@@ -86,12 +88,12 @@ class _CheckInState extends State<CheckIn> {
         attendance = tempAttendance.attendance;
         openAttendance = tempAttendance.status == AttendanceStatus.CHECKED_OUT;
 
-        checkInLabel = tempAttendance.status != AttendanceStatus.CHECKED_OUT
+        checkInLabel = tempAttendance.status != AttendanceStatus.CHECKED_IN
             ? "Check-In"
             : "Check-Out";
         attendanceStatus = attendance!.attendanceType == 'OVERTIME'
             ? 'OVERTIME'
-            : tempAttendance.status != AttendanceStatus.CHECKED_OUT
+            : tempAttendance.status != AttendanceStatus.CHECKED_IN
                 ? 'CHECK_IN'
                 : 'CHECK_OUT';
         if (attendance!.attendanceType == 'REGULAR' &&
@@ -152,6 +154,7 @@ class _CheckInState extends State<CheckIn> {
                                         ? Container()
                                         : Column(
                                             children: [
+                                              terminalCard(site!),
                                               shiftCard(shift),
                                               iamgeCard(context, screenSize),
                                               SizedBox(height: 20),
@@ -428,10 +431,15 @@ class _CheckInState extends State<CheckIn> {
                 label: 'Capture Photo',
                 color: Colors.blue,
                 onPressed: () async {
-                  final image1 = await captureImage();
-                  setState(() {
-                    image = File(image1!.path);
-                  });
+                  final cameras = await availableCameras();
+                  final preferedtCamera = cameras[1];
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(
+                          builder: (context) =>
+                              TakePictureScreen(camera: preferedtCamera)))
+                      .then((value) => setState(() {
+                            image = File(value);
+                          }));
                 },
               ),
             ],

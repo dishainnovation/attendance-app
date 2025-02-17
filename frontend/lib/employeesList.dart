@@ -250,30 +250,30 @@ class _EmployeesListState extends State<EmployeesList> {
                       TextButton(
                         child: Text('Approve'),
                         onPressed: () async {
-                          Navigator.of(context).pop();
-                          await deleteEmployee(employee.id)
-                              .then((result) async {
-                            await showMessageDialog(
-                                context, 'Employee', result);
-                            setState(() {});
-                          }).catchError(
-                            (err) {
-                              showMessageDialog(
-                                  context, 'Employee', err.toString());
-                            },
-                          );
+                          Navigator.of(context).pop(true);
                         },
                       ),
                       TextButton(
                         child: Text('Cancel'),
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          Navigator.of(context).pop(false);
                         },
                       ),
                     ],
                   );
                 },
-              );
+              ).then((value) async {
+                if (value) {
+                  await deleteEmployee(employee.id).then((result) async {
+                    await showMessageDialog(context, 'Employee', result);
+                    getData();
+                  }).catchError(
+                    (err) {
+                      showMessageDialog(context, 'Employee', err.toString());
+                    },
+                  );
+                }
+              });
             },
             child: Icon(
               Icons.delete,

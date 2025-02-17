@@ -64,15 +64,20 @@ class _ShiftState extends State<Shift> {
     return ScaffoldPage(
       error: error,
       title: page,
-      body: Stack(
-        children: [
-          form(context, shift),
-          _isSaving == true
-              ? Positioned.fill(
-                  child: LoadingWidget(message: 'Saving...'),
-                )
-              : Container(),
-        ],
+      body: SingleChildScrollView(
+        child: Stack(
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.8,
+              child: form(context, shift),
+            ),
+            _isSaving == true
+                ? Positioned.fill(
+                    child: LoadingWidget(message: 'Saving...'),
+                  )
+                : Container(),
+          ],
+        ),
       ),
     );
   }

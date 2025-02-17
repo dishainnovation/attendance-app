@@ -105,30 +105,32 @@ class _DesignationsListState extends State<DesignationsList> {
                           TextButton(
                             child: Text('Approve'),
                             onPressed: () async {
-                              Navigator.of(context).pop();
-                              await deleteDesignation(designation.id)
-                                  .then((result) async {
-                                await showMessageDialog(
-                                    context, 'Designation', result);
-                                setState(() {});
-                              }).catchError(
-                                (err) {
-                                  showMessageDialog(
-                                      context, 'Designation', err.toString());
-                                },
-                              );
+                              Navigator.of(context).pop(true);
                             },
                           ),
                           TextButton(
                             child: Text('Cancel'),
                             onPressed: () {
-                              Navigator.of(context).pop();
+                              Navigator.of(context).pop(false);
                             },
                           ),
                         ],
                       );
                     },
-                  );
+                  ).then((value) async {
+                    if (value == true) {
+                      await deleteDesignation(designation.id)
+                          .then((result) async {
+                        await showMessageDialog(context, 'Designation', result);
+                        setState(() {});
+                      }).catchError(
+                        (err) {
+                          showMessageDialog(
+                              context, 'Designation', err.toString());
+                        },
+                      );
+                    }
+                  });
                 },
                 child: Icon(
                   Icons.delete,

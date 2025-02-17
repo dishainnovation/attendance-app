@@ -31,7 +31,7 @@ class ErrorFallback extends StatelessWidget {
                 SizedBox(height: 40),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).popUntil((route) => route.isFirst);
+                    Navigator.of(context).pop((route) => route.isFirst);
                   },
                   child: Text('Go to Home'),
                 ),

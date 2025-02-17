@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/Designation.dart';
 import 'package:frontend/Services/userNotifier.dart';
@@ -14,6 +15,7 @@ import 'Services/employeeService.dart';
 import 'Services/portService.dart';
 import 'Utility.dart';
 import 'widgets/SpinKit.dart';
+import 'widgets/TakePicture.dart';
 import 'widgets/TextField.dart';
 import 'widgets/dropdown.dart';
 import 'widgets/loading.dart';
@@ -110,8 +112,9 @@ class _EmployeeState extends State<Employee> {
         child: Stack(
           children: [
             SizedBox(
-                height: MediaQuery.of(context).size.height * 0.8,
-                child: form(context, employee, user!)),
+              height: MediaQuery.of(context).size.height * 0.8,
+              child: form(context, employee, user!),
+            ),
             _isSaving == true
                 ? Positioned.fill(
                     child: LoadingWidget(message: 'Saving...'),
@@ -185,6 +188,8 @@ class _EmployeeState extends State<Employee> {
                                         employee.employeeCode =
                                             generateEmployeeCode(port.name,
                                                 widget.employeeesList);
+                                        empCodeController.text =
+                                            employee.employeeCode;
                                       }
                                     });
                                   },
@@ -450,12 +455,22 @@ class _EmployeeState extends State<Employee> {
                 label: 'Capture Photo',
                 color: Colors.blue,
                 onPressed: () async {
-                  final image = await captureImage();
-                  setState(() {
-                    employee.profileImage = image!.path;
-                    employee.employeePhoto = File(image.path);
-                    localImage = File(image.path);
-                    isNetworkImage = false;
+                  final cameras = await availableCameras();
+
+                  final preferedtCamera = cameras[1];
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(
+                          builder: (context) =>
+                              TakePictureScreen(camera: preferedtCamera)))
+                      .then((value) {
+                    setState(() {
+                      if (value != null) {
+                        employee.profileImage = value.toString();
+                        employee.employeePhoto = File(value.toString());
+                        localImage = employee.employeePhoto;
+                        isNetworkImage = false;
+                      }
+                    });
                   });
                 },
               ),

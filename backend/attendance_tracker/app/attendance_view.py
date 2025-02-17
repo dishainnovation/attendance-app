@@ -147,9 +147,10 @@ def attendance_object(attendance):
     
     return {
         'id': attendance.id,
-        'employee': attendance.employee.name,
-        'site': attendance.site.name,
-        'shift': attendance.shift.name,
+        'employee': attendance.employee.id,
+        'attendance_date': attendance.attendance_date,
+        'site': attendance.site.id,
+        'shift': attendance.shift.id,
         'check_in_time': attendance.check_in_time,
         'check_out_time': attendance.check_out_time,
         'latitude': attendance.latitude,
