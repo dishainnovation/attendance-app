@@ -463,14 +463,14 @@ class _EmployeeState extends State<Employee> {
                           builder: (context) =>
                               TakePictureScreen(camera: preferedtCamera)))
                       .then((value) {
-                    setState(() {
-                      if (value != null) {
+                    if (value != null) {
+                      setState(() {
                         employee.profileImage = value.toString();
                         employee.employeePhoto = File(value.toString());
                         localImage = employee.employeePhoto;
                         isNetworkImage = false;
-                      }
-                    });
+                      });
+                    }
                   });
                 },
               ),

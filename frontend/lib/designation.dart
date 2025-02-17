@@ -71,7 +71,7 @@ class _DesignationState extends State<Designation> {
                       },
                     ),
                     DropDown(
-                      items: ['SUPER_ADMIN', 'ADMIN', 'USER'],
+                      items: ['SUPER_ADMIN', 'ADMIN', 'SUPERVISOR', 'USER'],
                       initialItem: designation.user_type,
                       title: 'Select Designation',
                       onValueChanged: (value) {

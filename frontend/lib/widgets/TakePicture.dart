@@ -19,16 +19,19 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
 
-  @override
-  void initState() {
-    super.initState();
+  initializeCameraController() {
     _controller = CameraController(
+      enableAudio: false,
       widget.camera,
       ResolutionPreset.medium,
     );
-
     _initializeControllerFuture = _controller.initialize();
-    _controller.lockCaptureOrientation(DeviceOrientation.landscapeLeft);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initializeCameraController();
   }
 
   @override
@@ -39,6 +42,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
     return ScaffoldPage(
       error: error,
       title: 'Take a picture',
@@ -46,10 +50,11 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         future: _initializeControllerFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
+            _controller.lockCaptureOrientation(DeviceOrientation.landscapeLeft);
             return Center(
               child: Container(
-                  height: MediaQuery.of(context).size.height * 0.8,
-                  width: MediaQuery.of(context).size.width,
+                  height: size.height * 0.8,
+                  width: size.width,
                   padding: const EdgeInsets.all(10.0),
                   decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey[600]!),

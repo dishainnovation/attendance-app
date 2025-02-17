@@ -28,12 +28,19 @@ class _SplashscreenState extends State<Splashscreen> {
       Navigator.pushReplacementNamed(context, '/login');
     } else {
       EmployeeModel? user = await getUserInfo();
-      if (user == null) {
-        Navigator.pushReplacementNamed(context, '/login');
-      } else {
-        context.read<User>().user = EmployeeModel.fromJson(user.toJson());
-        Navigator.pushReplacementNamed(context, '/screen');
+      context.read<User>().user = EmployeeModel.fromJson(user!.toJson());
+
+      // if (user == null) {
+      //   Navigator.pushReplacementNamed(context, '/login');
+      // } else {
+      if (user.designation!.user_type == 'SUPER_ADMIN') {
+        Navigator.pushReplacementNamed(context, '/super-admin-home');
+      } else if (user.designation!.user_type == 'ADMIN') {
+        Navigator.pushReplacementNamed(context, '/admin-home');
+      } else if (user.designation!.user_type == 'USER') {
+        Navigator.pushReplacementNamed(context, '/user-home');
       }
+      // }
     }
   }
 

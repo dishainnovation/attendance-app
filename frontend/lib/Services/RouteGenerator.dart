@@ -11,6 +11,7 @@ import 'package:frontend/screen.dart';
 import 'package:frontend/shift.dart';
 import 'package:frontend/terminal.dart';
 import 'package:frontend/terminalsList.dart';
+import 'package:frontend/userHome.dart';
 
 import '../attendance.dart';
 import '../employee.dart';
@@ -25,10 +26,12 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => Login());
       case '/screen':
         return MaterialPageRoute(builder: (_) => Screen());
-      case '/admin-home':
+      case '/super-admin-home':
         return MaterialPageRoute(builder: (_) => AdminHome());
-      case '/home':
+      case '/admin-home':
         return MaterialPageRoute(builder: (_) => HomePage());
+      case '/user-home':
+        return MaterialPageRoute(builder: (_) => UserHome());
       case '/port':
         return MaterialPageRoute(builder: (_) => Port());
       case '/ports-list':

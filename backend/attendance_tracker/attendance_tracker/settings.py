@@ -81,13 +81,15 @@ WSGI_APPLICATION = 'attendance_tracker.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'attendance_tracker',
+        'NAME': 'attendance',
         'USER': 'admin',
         'PASSWORD': 'admin',
         'HOST': 'localhost',  # Set to your database server's address
         'PORT': '5432',       # Default port for PostgreSQL
     }
 }
+
+# AWS RDS Database password - 4cnrr49GM5I1oMMzL8he
 
 
 # Password validation
