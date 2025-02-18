@@ -22,3 +22,32 @@ flutter_out/
 # Generated files
 generated_plugin_registrant.dart
 pubspec.lock
+
+# Python 
+*.py[cod]
+__pycache__/
+*.so
+
+# Django stuff:
+*.log
+*.pot
+*.py[cod]
+*.pyo
+*.db
+*.sqlite3
+
+# Environment variables
+.env
+
+# Virtualenv
+venv/
+ENV/
+env/
+venv.bak/
+
+# JetBrains IDEs
+.idea/
+*.iml
+
+# Other
+*.swp
