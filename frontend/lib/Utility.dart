@@ -179,10 +179,24 @@ String displayDate(DateTime date) {
   return DateFormat("dd-MM-yyyy").format(date);
 }
 
+String displayTime(DateTime date) {
+  return DateFormat("hh:mm a").format(date);
+}
+
 showSnackBar(BuildContext context, String title, String message) {
   final snackBar = SnackBar(content: Text(message));
 
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
+Future<DateTime> selectDate(BuildContext context) async {
+  final DateTime? picked = await showDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime(1900),
+    lastDate: DateTime(2101),
+  );
+  return picked ?? DateTime.now();
 }
 
 Future<File?> pickImage() async {

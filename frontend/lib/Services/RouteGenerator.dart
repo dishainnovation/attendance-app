@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/adminHome.dart';
+import 'package:frontend/attendanceReport.dart';
 import 'package:frontend/designation.dart';
 import 'package:frontend/designationsList.dart';
 import 'package:frontend/employeesList.dart';
@@ -57,7 +58,8 @@ class RouteGenerator {
                 ));
       case '/check-in':
         return MaterialPageRoute(builder: (_) => CheckIn());
-
+      case '/attendace-report':
+        return MaterialPageRoute(builder: (_) => AttendanceReport());
       default:
         return errorRoute();
     }

@@ -312,6 +312,9 @@ class _AdminHomeState extends State<AdminHome> {
             Icons.arrow_circle_right,
             color: Colors.grey,
           ),
+          onTap: () {
+            NavigationService.navigateTo('/attendace-report');
+          },
         ),
       ),
       Card(

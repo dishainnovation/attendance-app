@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/SiteModel.dart';
@@ -222,4 +223,23 @@ Future<CurrentAttendance?> getCurrentAttendance(
     return attendance;
   }
   return null;
+}
+
+Future<List<AttendanceModel>?> downloadReport(
+    String startDate, String endDate) async {
+  final url = Uri.parse('${baseUrl}export-attendance/');
+  final response = await http.get(
+    url.replace(
+        queryParameters: {'start_date': startDate, 'end_date': endDate}),
+  );
+
+  if (response.statusCode == 200) {
+    final List<dynamic> data = jsonDecode(response.body);
+    List<AttendanceModel> attendances = data.map((emp) {
+      return AttendanceModel.fromJson(emp as Map<String, dynamic>);
+    }).toList();
+    return attendances;
+  } else {
+    return null;
+  }
 }
