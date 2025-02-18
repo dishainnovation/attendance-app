@@ -74,7 +74,9 @@ class _TerminalsListState extends State<TerminalsList> {
               builder: (context) => Terminal(selectedPort: selectedPort),
             ),
           ).then((onValue) {
-            setState(() {});
+            setState(() {
+              futureSite = getSitesByPort(selectedPort!.id);
+            });
           });
         },
         child: Icon(Icons.add, color: Colors.white),
@@ -198,7 +200,9 @@ class _TerminalsListState extends State<TerminalsList> {
                       builder: (context) => Terminal(site: site),
                     ),
                   ).then((onValue) {
-                    setState(() {});
+                    setState(() {
+                      futureSite = getSitesByPort(selectedPort!.id);
+                    });
                   });
                 },
                 child: Icon(
@@ -235,7 +239,9 @@ class _TerminalsListState extends State<TerminalsList> {
               child: Text('Approve'),
               onPressed: () async {
                 await deleteSite(site.id).then((result) async {
-                  setState(() {});
+                  setState(() {
+                    futureSite = getSitesByPort(selectedPort!.id);
+                  });
                   Navigator.of(context).pop();
                 }).catchError(
                   (err) {

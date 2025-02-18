@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 from .models import Shift
 from .serializers import ShiftSerializer
+from django.db.models.deletion import ProtectedError
 
 class ShiftViewSet(viewsets.ModelViewSet):
     serializer_class = ShiftSerializer
@@ -24,6 +25,13 @@ class ShiftViewSet(viewsets.ModelViewSet):
             except ValueError:
                 pass
         return queryset
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            self.perform_destroy(instance)
+        except ProtectedError:
+            return Response({'error': 'Cannot delete this Shift because it is referenced in Attendance.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_204_NO_CONTENT)
     
 @api_view(['GET'])
 def shift_view(request):

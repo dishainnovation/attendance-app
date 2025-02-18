@@ -37,6 +37,7 @@ class _AdminHomeState extends State<AdminHome> {
   String locationName = '';
   bool isProfileCompleted = false;
   bool isLoading = false;
+  bool fetchingAttendance = false;
 
   getUser() {
     try {
@@ -51,12 +52,16 @@ class _AdminHomeState extends State<AdminHome> {
   }
 
   getLocation() async {
+    setState(() {
+      fetchingAttendance = true;
+    });
     await getCurrentLocation().then((location) async {
       await getCurrentAttendance(
               employee!, location.latitude, location.longitude)
           .then((att) {
         setState(() {
           attendance = att;
+          fetchingAttendance = false;
         });
       });
       setState(() {
@@ -67,6 +72,9 @@ class _AdminHomeState extends State<AdminHome> {
             locationName = value;
           }));
     }).catchError((err) {
+      setState(() {
+        fetchingAttendance = false;
+      });
       throw Exception(err);
     });
   }
@@ -190,17 +198,25 @@ class _AdminHomeState extends State<AdminHome> {
                 ),
               ],
             ),
-            attendance != null
-                ? Button(
-                    label: attendance!.status == AttendanceStatus.CHECKED_IN
-                        ? 'Check Out'
-                        : 'Check In',
-                    color: Colors.blue,
-                    onPressed: () {
-                      NavigationService.navigateTo('/check-in');
-                    },
+            fetchingAttendance
+                ? Padding(
+                    padding: const EdgeInsets.only(right: 20.0),
+                    child: SpinKit(
+                      type: SpinType.Circle,
+                      size: 40,
+                    ),
                   )
-                : Container(),
+                : attendance != null
+                    ? Button(
+                        label: attendance!.status == AttendanceStatus.CHECKED_IN
+                            ? 'Check Out'
+                            : 'Check In',
+                        color: Colors.blue,
+                        onPressed: () {
+                          NavigationService.navigateTo('/check-in');
+                        },
+                      )
+                    : Container(),
           ],
         ),
       ],
@@ -296,6 +312,9 @@ class _AdminHomeState extends State<AdminHome> {
             Icons.arrow_circle_right,
             color: Colors.grey,
           ),
+          onTap: () {
+            NavigationService.navigateTo('/attendace-report');
+          },
         ),
       ),
       Card(

@@ -63,8 +63,8 @@ class _EmployeeState extends State<Employee> {
       setState(() {
         this.ports = ports;
         if (employee.employeeCode == '') {
-          employee.employeeCode =
-              generateEmployeeCode(user!.portName!, widget.employeeesList);
+          employee.employeeCode = generateEmployeeCode(
+              user!.portName!.toUpperCase(), widget.employeeesList);
         }
       });
     }).catchError((e) {
@@ -460,8 +460,10 @@ class _EmployeeState extends State<Employee> {
                   final preferedtCamera = cameras[1];
                   Navigator.of(context)
                       .push(MaterialPageRoute(
-                          builder: (context) =>
-                              TakePictureScreen(camera: preferedtCamera)))
+                              builder: (context) =>
+                                  TakePictureScreen(camera: preferedtCamera))
+                          // Camera()),
+                          )
                       .then((value) {
                     if (value != null) {
                       setState(() {
@@ -527,15 +529,5 @@ class _EmployeeState extends State<Employee> {
       });
       error = ErrorObject(title: 'Error', message: e.toString());
     }
-  }
-
-  Future<DateTime> selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2101),
-    );
-    return picked ?? DateTime.now();
   }
 }

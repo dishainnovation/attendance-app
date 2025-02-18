@@ -8,6 +8,8 @@ import face_recognition
 from PIL import Image, ExifTags
 import io
 import numpy as np
+import pandas as pd
+from django.http import HttpResponse
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def attendance_list(request):
@@ -161,3 +163,18 @@ def attendance_object(attendance):
         'created_at': attendance.created_at,
         'updated_at': attendance.updated_at,
     }
+
+def export_attendance_to_excel(request):
+    # Get the start_date and end_date from query parameters
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
+    if not start_date or not end_date:
+        return HttpResponse('Please provide start_date and end_date as query parameters.', status=400)
+
+    # Fetch data from the database for the specified date range
+    attendances = Attendance.objects.filter(attendance_date__range=[start_date, end_date])
+    attendance_data = []
+    for attendance in attendances:
+        attendance_data.append(attendance_object(attendance))
+    return JsonResponse(attendance_data, safe=False)

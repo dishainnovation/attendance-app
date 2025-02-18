@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:frontend/widgets/SpinKit.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -177,8 +179,35 @@ String displayDate(DateTime date) {
   return DateFormat("dd-MM-yyyy").format(date);
 }
 
+String displayTime(DateTime date) {
+  return DateFormat("hh:mm a").format(date);
+}
+
 showSnackBar(BuildContext context, String title, String message) {
   final snackBar = SnackBar(content: Text(message));
 
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
+Future<DateTime> selectDate(BuildContext context) async {
+  final DateTime? picked = await showDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime(1900),
+    lastDate: DateTime(2101),
+  );
+  return picked ?? DateTime.now();
+}
+
+Future<File?> pickImage() async {
+  final ImagePicker _picker = ImagePicker();
+  final XFile? image = await _picker.pickImage(
+    source: ImageSource.camera,
+    preferredCameraDevice: CameraDevice.front,
+  );
+  if (image != null) {
+    return File(image.path);
+  } else {
+    return null;
+  }
 }

@@ -41,7 +41,7 @@ class _CheckInState extends State<CheckIn> {
   String checkInLabel = "CHeck-In";
   String attendanceStatus = 'CHECK_IN';
   bool openAttendance = false;
-  bool isAllowCheckOut = true;
+  bool isAllowCheckOut = false;
 
   getLocation() async {
     await getCurrentLocation().then((location) async {
@@ -97,11 +97,13 @@ class _CheckInState extends State<CheckIn> {
                 ? 'CHECK_IN'
                 : 'CHECK_OUT';
         if (attendance!.attendanceType == 'REGULAR' &&
+            attendance!.id > 0 &&
             attendance!.checkOutTime == null) {
           TimeOfDay now = TimeOfDay.now();
-          if (now.isAfter(TimeOfDay.fromDateTime(attendance!.checkInTime)) &&
-              attendance!.id > 0 &&
-              !now.isBefore(shift!.endTime!)) {
+          TimeOfDay checkedInTime =
+              TimeOfDay.fromDateTime(attendance!.checkInTime);
+          TimeOfDay shiftEndTime = shift!.endTime!;
+          if (now.isAfter(checkedInTime) && !now.isBefore(shiftEndTime)) {
             isAllowCheckOut = true;
           }
         }
@@ -181,7 +183,7 @@ class _CheckInState extends State<CheckIn> {
                                 )
                               : SizedBox(
                                   height:
-                                      MediaQuery.of(context).size.height * 0.8,
+                                      MediaQuery.of(context).size.height * 0.7,
                                   width: MediaQuery.of(context).size.width,
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -210,13 +212,13 @@ class _CheckInState extends State<CheckIn> {
                                           })
                                     ],
                                   )),
-                      _isSaving == true
-                          ? Positioned.fill(
-                              child: LoadingWidget(message: 'Saving...'),
-                            )
-                          : Container(),
                     ],
                   ),
+                  _isSaving == true
+                      ? Positioned.fill(
+                          child: LoadingWidget(message: 'Saving...'),
+                        )
+                      : Container(),
                 ],
               ),
       ),
@@ -393,6 +395,9 @@ class _CheckInState extends State<CheckIn> {
           attendance!.attendanceType == 'REGULAR') {
         await showMessageDialog(context, 'Check-out',
             "You cannot check out now as your check-out time doesn't correspond with the shift's end time.");
+        setState(() {
+          _isSaving = false;
+        });
         return;
       }
       await updateAttendance(attendance!.id, attendance!, image!).then((value) {
