@@ -69,7 +69,9 @@ class _ShiftsListState extends State<ShiftsList> {
         backgroundColor: Colors.green,
         onPressed: () {
           Navigator.pushNamed(context, '/shift').then((onValue) {
-            setState(() {});
+            setState(() {
+              futureShifts = getShiftsByPort(selectedPort!.id);
+            });
           });
         },
         child: Icon(Icons.add, color: Colors.white),
@@ -200,7 +202,9 @@ class _ShiftsListState extends State<ShiftsList> {
                       builder: (context) => Shift(shift: shift),
                     ),
                   ).then((onValue) {
-                    setState(() {});
+                    setState(() {
+                      futureShifts = getShiftsByPort(selectedPort!.id);
+                    });
                   });
                 },
                 child: Icon(
@@ -226,29 +230,32 @@ class _ShiftsListState extends State<ShiftsList> {
                           TextButton(
                             child: Text('Approve'),
                             onPressed: () async {
-                              Navigator.of(context).pop();
-                              await deleteShift(shift.id).then((result) async {
-                                setState(() {});
-                                await showMessageDialog(
-                                    context, 'Shift', result);
-                              }).catchError(
-                                (err) {
-                                  showMessageDialog(
-                                      context, 'Shift', err.toString());
-                                },
-                              );
+                              Navigator.of(context).pop(true);
                             },
                           ),
                           TextButton(
                             child: Text('Cancel'),
                             onPressed: () {
-                              Navigator.of(context).pop();
+                              Navigator.of(context).pop(false);
                             },
                           ),
                         ],
                       );
                     },
-                  );
+                  ).then((result) async {
+                    if (result == true) {
+                      await deleteShift(shift.id).then((result) async {
+                        setState(() {
+                          futureShifts = getShiftsByPort(selectedPort!.id);
+                        });
+                        await showMessageDialog(context, 'Shift', result);
+                      }).catchError(
+                        (err) {
+                          showMessageDialog(context, 'Shift', err.toString());
+                        },
+                      );
+                    }
+                  });
                 },
                 child: Icon(
                   Icons.delete,

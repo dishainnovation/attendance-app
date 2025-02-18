@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:frontend/widgets/SpinKit.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -181,4 +183,17 @@ showSnackBar(BuildContext context, String title, String message) {
   final snackBar = SnackBar(content: Text(message));
 
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
+Future<File?> pickImage() async {
+  final ImagePicker _picker = ImagePicker();
+  final XFile? image = await _picker.pickImage(
+    source: ImageSource.camera,
+    preferredCameraDevice: CameraDevice.front,
+  );
+  if (image != null) {
+    return File(image.path);
+  } else {
+    return null;
+  }
 }

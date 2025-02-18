@@ -62,13 +62,13 @@ Future<ShiftModel> updateShift(int id, ShiftModel shift) async {
 
 Future<String> deleteShift(int id) async {
   try {
-    Uri uriPut = Uri.parse('$url?id=$id');
+    Uri uriPut = Uri.parse('$url$id/');
     var request = await http.delete(uriPut);
 
     if (request.statusCode == 204) {
       return 'Shift deleted successfuly.';
     } else if (request.statusCode == 400) {
-      throw Exception(jsonDecode(request.body)['error_message'].toString());
+      throw Exception(jsonDecode(request.body)['error'].toString());
     } else {
       throw Exception('Failed to save shift: ${request.reasonPhrase}');
     }

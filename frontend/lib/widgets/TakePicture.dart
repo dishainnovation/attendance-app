@@ -1,6 +1,5 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 
 import '../Models/ErrorObject.dart';
@@ -50,19 +49,30 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         future: _initializeControllerFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            _controller.lockCaptureOrientation(DeviceOrientation.landscapeLeft);
+            // _controller.setZoomLevel(2.0);
             return Center(
               child: Container(
-                  height: size.height * 0.8,
-                  width: size.width,
-                  padding: const EdgeInsets.all(10.0),
-                  decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[600]!),
-                      borderRadius: BorderRadius.circular(10),
-                      color: Colors.white),
-                  child: CameraPreview(
-                    _controller,
-                  )),
+                // height: size.height * 0.4,
+                // width: size.width,
+                padding: const EdgeInsets.all(10.0),
+                decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[600]!),
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.white),
+                child: RotatedBox(
+                  quarterTurns: 3, // Adjust this value as per your needed
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: AspectRatio(
+                          aspectRatio: _controller.value.aspectRatio,
+                          child: CameraPreview(_controller),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             );
           } else {
             return const Center(child: CircularProgressIndicator());

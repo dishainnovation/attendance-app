@@ -460,8 +460,10 @@ class _EmployeeState extends State<Employee> {
                   final preferedtCamera = cameras[1];
                   Navigator.of(context)
                       .push(MaterialPageRoute(
-                          builder: (context) =>
-                              TakePictureScreen(camera: preferedtCamera)))
+                              builder: (context) =>
+                                  TakePictureScreen(camera: preferedtCamera))
+                          // Camera()),
+                          )
                       .then((value) {
                     if (value != null) {
                       setState(() {
