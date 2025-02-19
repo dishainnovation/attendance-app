@@ -76,11 +76,11 @@ class _EmployeeState extends State<Employee> {
     await getDesignations().then((designations) {
       setState(() {
         this.designations = designations;
-        setState(() {
-          DesignationModel designation =
-              getDesignationByName(designations[0].name, designations);
-          employee.designation = designation;
-        });
+        // setState(() {
+        //   DesignationModel designation =
+        //       getDesignationByName(designations[0].name, designations);
+        //   // employee.designation = designation;
+        // });
       });
     }).catchError((e) {
       error = ErrorObject(title: 'Error', message: e.toString());
@@ -172,6 +172,9 @@ class _EmployeeState extends State<Employee> {
                             )
                           : ports.isNotEmpty
                               ? DropDown(
+                                  enabled: user.designation!.user_type ==
+                                          'SUPER_ADMIN' ||
+                                      user.designation!.user_type == 'ADMIN',
                                   items:
                                       ports.map((port) => port.name).toList(),
                                   initialItem: employee.port == 0
@@ -356,6 +359,9 @@ class _EmployeeState extends State<Employee> {
                       Text('Designation'),
                       designations.isNotEmpty
                           ? DropDown(
+                              enabled: user.designation!.user_type ==
+                                      'SUPER_ADMIN' ||
+                                  user.designation!.user_type == 'ADMIN',
                               items: designations
                                   .map((designation) => designation.name)
                                   .toList(),

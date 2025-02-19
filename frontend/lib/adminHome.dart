@@ -55,28 +55,34 @@ class _AdminHomeState extends State<AdminHome> {
     setState(() {
       fetchingAttendance = true;
     });
-    await getCurrentLocation().then((location) async {
-      await getCurrentAttendance(
-              employee!, location.latitude, location.longitude)
-          .then((att) {
+    try {
+      await getCurrentLocation().then((location) async {
+        await getCurrentAttendance(
+                employee!, location.latitude, location.longitude)
+            .then((att) {
+          setState(() {
+            attendance = att;
+            fetchingAttendance = false;
+          });
+        });
         setState(() {
-          attendance = att;
+          latitude = location.latitude;
+          longitude = location.longitude;
+        });
+        await getLocationName(location).then((value) => setState(() {
+              locationName = value;
+            }));
+      }).catchError((err) {
+        setState(() {
           fetchingAttendance = false;
         });
+        throw Exception(err);
       });
-      setState(() {
-        latitude = location.latitude;
-        longitude = location.longitude;
-      });
-      await getLocationName(location).then((value) => setState(() {
-            locationName = value;
-          }));
-    }).catchError((err) {
+    } catch (e) {
       setState(() {
         fetchingAttendance = false;
       });
-      throw Exception(err);
-    });
+    }
   }
 
   checkProfile() {

@@ -7,12 +7,14 @@ class DropDown extends StatelessWidget {
   final String? initialItem;
   final onValueChanged;
   final String title;
+  final bool? enabled;
   const DropDown(
       {super.key,
       required this.items,
       this.initialItem,
       this.onValueChanged,
-      required this.title});
+      required this.title,
+      this.enabled = true});
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +23,7 @@ class DropDown extends StatelessWidget {
           border: Border.all(color: Colors.grey[600]!, width: 0.5),
           borderRadius: BorderRadius.circular(7)),
       child: CustomDropdown<String>(
+        enabled: enabled!,
         hintText: title,
         items: items,
         initialItem: initialItem,

@@ -1,3 +1,6 @@
+/backend/attendance_tracker/app/__pycache__/
+/frontend/linux
+
 # Flutter/Dart related
 .dart_tool/
 .packages

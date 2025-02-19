@@ -1,8 +1,9 @@
+from .employee_view import employee_object
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.http import JsonResponse
-from .models import Attendance, Employee, Shift, Site
+from .models import Attendance, Employee, Port, Shift, Site
 from .serializers import AttendanceSerializer
 import face_recognition
 from PIL import Image, ExifTags
@@ -41,7 +42,7 @@ def attendance_list(request):
                 attendance = Attendance(
                     attendance_date = request.data['attendance_date'],
                     employee = employee,
-                    site = Site.objects.get(id = request.data['site_id']),
+                    port = Port.objects.get(id = request.data['port_id']),
                     shift = Shift.objects.get(id=request.data['shift_id']),
                     check_in_time = request.data['check_in_time'],
                     check_out_time = None,
@@ -73,7 +74,7 @@ def attendance_list(request):
         if match['match']:
             attendance.attendance_date = request.data['attendance_date']
             attendance.employee = employee
-            attendance.site = Site.objects.get(id = request.data['site_id'])
+            attendance.port = Port.objects.get(id = request.data['port_id'])
             attendance.shift = Shift.objects.get(id=request.data['shift_id'])
             attendance.check_out_time = request.data['check_in_time']
             attendance.latitude = request.data['latitude']
@@ -149,9 +150,9 @@ def attendance_object(attendance):
     
     return {
         'id': attendance.id,
-        'employee': attendance.employee.id,
+        'employee': employee_object(attendance.employee),
         'attendance_date': attendance.attendance_date,
-        'site': attendance.site.id,
+        'port': attendance.port.id,
         'shift': attendance.shift.id,
         'check_in_time': attendance.check_in_time,
         'check_out_time': attendance.check_out_time,
@@ -164,16 +165,24 @@ def attendance_object(attendance):
         'updated_at': attendance.updated_at,
     }
 
-def export_attendance_to_excel(request):
+def attendance_report(request):
     # Get the start_date and end_date from query parameters
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
-    
+    employee_name = request.GET.get('employee_name')
+    port_id = request.GET.get('port_id')
+
     if not start_date or not end_date:
         return HttpResponse('Please provide start_date and end_date as query parameters.', status=400)
 
     # Fetch data from the database for the specified date range
-    attendances = Attendance.objects.filter(attendance_date__range=[start_date, end_date])
+    filters = {'attendance_date__range': [start_date, end_date]}
+    if employee_name:
+        filters['employee__name__icontains'] = employee_name
+    if port_id:
+        filters['port'] = port_id
+    
+    attendances = Attendance.objects.filter(**filters)
     attendance_data = []
     for attendance in attendances:
         attendance_data.append(attendance_object(attendance))

@@ -1,2 +1,56 @@
-/backend/attendance_tracker/app/__pycache__
+/backend/attendance_tracker/app/__pycache__/
 /frontend/linux
+
+# Flutter/Dart related
+.dart_tool/
+.packages
+.buildlog
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+*.jks
+
+# Miscellaneous
+*.lock
+*.log
+*.tmp
+.DS_Store
+
+# Build outputs
+/build/
+flutter_out/
+
+# Generated files
+generated_plugin_registrant.dart
+pubspec.lock
+
+# Python 
+*.py[cod]
+__pycache__/
+*.so
+
+# Django stuff:
+*.log
+*.pot
+*.py[cod]
+*.pyo
+*.db
+*.sqlite3
+
+# Environment variables
+.env
+
+# Virtualenv
+venv/
+ENV/
+env/
+venv.bak/
+
+# JetBrains IDEs
+.idea/
+*.iml
+
+# Other
+*.swp

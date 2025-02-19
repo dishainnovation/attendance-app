@@ -171,9 +171,9 @@ Future<CurrentAttendance?> getCurrentAttendance(
             tempAttendance = AttendanceModel(
                 id: 0,
                 attendanceDate: DateTime.now(),
-                employeeId: user.id,
+                employeeId: user,
                 shiftId: tempShift?.id,
-                siteId: tempSite?.id,
+                portId: tempSite?.id,
                 checkInTime: DateTime.now(),
                 checkInPhoto: null,
                 latitude: latitude,
@@ -186,9 +186,9 @@ Future<CurrentAttendance?> getCurrentAttendance(
         tempAttendance = AttendanceModel(
             id: 0,
             attendanceDate: DateTime.now(),
-            employeeId: user.id,
+            employeeId: user,
             shiftId: tempShift?.id,
-            siteId: tempSite?.id,
+            portId: tempSite?.id,
             checkInTime: DateTime.now(),
             checkInPhoto: null,
             latitude: latitude,
@@ -199,9 +199,9 @@ Future<CurrentAttendance?> getCurrentAttendance(
       tempAttendance = AttendanceModel(
           id: 0,
           attendanceDate: DateTime.now(),
-          employeeId: user.id,
+          employeeId: user,
           shiftId: tempShift?.id,
-          siteId: tempSite?.id,
+          portId: tempSite?.id,
           checkInTime: DateTime.now(),
           checkInPhoto: null,
           latitude: latitude,
@@ -225,12 +225,24 @@ Future<CurrentAttendance?> getCurrentAttendance(
   return null;
 }
 
-Future<List<AttendanceModel>?> downloadReport(
-    String startDate, String endDate) async {
-  final url = Uri.parse('${baseUrl}export-attendance/');
+Future<List<AttendanceModel>> downloadReport(
+    String startDate, String endDate, int? portId, String? employee) async {
+  Map<String, dynamic>? queryParameters = {
+    'start_date': startDate,
+    'end_date': endDate
+  };
+
+  if (portId != null) {
+    queryParameters['port_id'] = portId.toString();
+  }
+
+  if (employee != null && employee.isNotEmpty) {
+    queryParameters['employee_name'] = employee;
+  }
+
+  final url = Uri.parse('${baseUrl}attendance-report/');
   final response = await http.get(
-    url.replace(
-        queryParameters: {'start_date': startDate, 'end_date': endDate}),
+    url.replace(queryParameters: queryParameters),
   );
 
   if (response.statusCode == 200) {
@@ -240,6 +252,6 @@ Future<List<AttendanceModel>?> downloadReport(
     }).toList();
     return attendances;
   } else {
-    return null;
+    return [];
   }
 }

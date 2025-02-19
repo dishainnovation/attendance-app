@@ -1,3 +1,4 @@
+import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:frontend/Models/ShiftModel.dart';
 import 'package:frontend/Models/SiteModel.dart';
 import 'package:frontend/Utility.dart';
@@ -5,8 +6,8 @@ import 'package:frontend/Utility.dart';
 class AttendanceModel {
   int id;
   DateTime attendanceDate;
-  int employeeId; // Assuming you use the employee's ID
-  int? siteId; // Nullable site ID
+  EmployeeModel employeeId; // Assuming you use the employee's ID
+  int? portId; // Nullable site ID
   int? shiftId;
   DateTime checkInTime;
   DateTime? checkOutTime; // Nullable checkout time
@@ -20,7 +21,7 @@ class AttendanceModel {
       {required this.id,
       required this.attendanceDate,
       required this.employeeId,
-      this.siteId,
+      this.portId,
       required this.shiftId,
       required this.checkInTime,
       this.checkOutTime,
@@ -35,8 +36,8 @@ class AttendanceModel {
     return AttendanceModel(
         id: int.parse(json['id'].toString()),
         attendanceDate: DateTime.parse(json['attendance_date']),
-        employeeId: json['employee'],
-        siteId: json['site'],
+        employeeId: EmployeeModel.fromJson(json['employee']),
+        portId: json['port'],
         shiftId: json['shift'],
         checkInTime: DateTime.parse(json['check_in_time']),
         checkOutTime: json['check_out_time'] != null
@@ -54,8 +55,8 @@ class AttendanceModel {
     return {
       'id': id.toString(),
       'attendance_date': formatDate(attendanceDate),
-      'employee_id': employeeId,
-      'site_id': siteId,
+      'employee_id': employeeId.id,
+      'port_id': portId,
       'shift_id': shiftId,
       'check_in_time': checkInTime,
       'check_out_time': checkOutTime,

@@ -117,6 +117,10 @@ class _ShiftState extends State<Shift> {
                         if (value != null) {
                           setState(() {
                             shift.startTime = value;
+                            shift.durationHours =
+                                shift.endTime!.hour - shift.startTime!.hour;
+                            durationController.text =
+                                shift.durationHours.toString();
                           });
                         }
                       });
@@ -138,6 +142,10 @@ class _ShiftState extends State<Shift> {
                         if (value != null) {
                           setState(() {
                             shift.endTime = value;
+                            shift.durationHours =
+                                shift.endTime!.hour - shift.startTime!.hour;
+                            durationController.text =
+                                shift.durationHours.toString();
                           });
                         }
                       });

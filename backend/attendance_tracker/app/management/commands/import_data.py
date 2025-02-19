@@ -18,53 +18,71 @@ class Command(BaseCommand):
         for sheet_name, df in sheets.items():
             self.stdout.write(f'Processing sheet: {sheet_name}')
 
-            if sheet_name == 'Ports':
+            if sheet_name == 'Designations':
                 for index, row in df.iterrows():
-                    port = Port.objects.get(name=row['name'])
-                    if(port is None):
-                        Port.objects.create(
-                            name=row['name'],
-                            location=row['location']
-                        )
+                    print(row)
+                    designation, created = Designation.objects.get_or_create(
+                        name=row['name'],
+                        defaults={
+                            'user_type': row['user_type'],
+                            'remote_checkin': row['remote_checkin']
+                        }
+                    )
+            elif sheet_name == 'Ports':
+                for index, row in df.iterrows():
+                    print(row)
+                    port, created = Port.objects.get_or_create(
+                        name=row['name'],
+                        defaults={
+                            'location': row['location']
+                        }
+                    )
             elif sheet_name == 'Employees':
                 for index, row in df.iterrows():
                     print(row)
                     designation = Designation.objects.get(name=row['designation'])
                     port = Port.objects.get(name=row['port'])
-                    Employee.objects.create(
+                    Employee.objects.get_or_create(
                         employee_code=row['employee_code'],
-                        name=row['name'],
-                        gender=row['gender'],
-                        date_of_birth=row['date_of_birth'],
-                        designation=designation,
-                        date_of_joining=row['date_of_joining'],
-                        mobile_number=row['mobile_number'],
-                        password=row['password'],
-                        port=port
+                        defaults={
+                            'name': row['name'],
+                            'gender': row['gender'],
+                            'date_of_birth': row['date_of_birth'],
+                            'designation': designation,
+                            'date_of_joining': row['date_of_joining'],
+                            'mobile_number': row['mobile_number'],
+                            'password': row['password'],
+                            'port': port
+                        }
                     )
             elif sheet_name == 'Shifts':
                 for index, row in df.iterrows():
+                    print(row)
                     port = Port.objects.get(name=row['port'])
-                    Shift.objects.create(
+                    Shift.objects.get_or_create(
                         port=port,
                         name=row['name'],
-                        start_time=row['start_time'],
-                        end_time=row['end_time'],
-                        duration_hours=row['duration_hours']
-
+                        defaults={
+                            'start_time': row['start_time'],
+                            'end_time': row['end_time'],
+                            'duration_hours': row['duration_hours']
+                        }
                     )
             elif sheet_name == 'Terminals':
                 for index, row in df.iterrows():
+                    print(row)
                     port = Port.objects.get(name=row['port'])
-                    Site.objects.create(
+                    Site.objects.get_or_create(
                         port=port,
                         name=row['name'],
-                        latitude=row['latitude'],
-                        longitude=row['longitude'],
-                        geofence_area=row['geofence_area']
-
+                        defaults={
+                            'latitude': row['latitude'],
+                            'longitude': row['longitude'],
+                            'geofence_area': row['geofence_area']
+                        }
                     )
             else:
                 self.stdout.write(f'Skipping unknown sheet: {sheet_name}')
+
 
         self.stdout.write(self.style.SUCCESS('Data imported successfully'))

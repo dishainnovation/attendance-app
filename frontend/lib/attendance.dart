@@ -96,6 +96,7 @@ class _CheckInState extends State<CheckIn> {
             : tempAttendance.status != AttendanceStatus.CHECKED_IN
                 ? 'CHECK_IN'
                 : 'CHECK_OUT';
+        isAllowCheckOut = attendance!.id == 0;
         if (attendance!.attendanceType == 'REGULAR' &&
             attendance!.id > 0 &&
             attendance!.checkOutTime == null) {
