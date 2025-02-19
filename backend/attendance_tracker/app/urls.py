@@ -13,7 +13,7 @@ urlpatterns = [
     path('employee/', employee_view.employee_list),
     path('employee/<int:id>/', employee_view.employee_view),
     path('port/', port_view.port_list),
-    path('export-attendance/', attendance_view.export_attendance_to_excel, name='export_attendance'),
+    path('attendance-report/', attendance_view.attendance_report, name='attendance_report'),
     path('', include(router.urls)),
     path('attendance/', attendance_view.attendance_list),
 ]

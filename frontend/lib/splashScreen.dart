@@ -37,7 +37,9 @@ class _SplashscreenState extends State<Splashscreen> {
         Navigator.pushReplacementNamed(context, '/super-admin-home');
       } else if (user.designation!.user_type == 'ADMIN') {
         Navigator.pushReplacementNamed(context, '/admin-home');
-      } else if (user.designation!.user_type == 'USER') {
+      } else if (user.designation!.user_type == 'SUPERVISOR') {
+        Navigator.pushReplacementNamed(context, '/user-home');
+      } else if (user.designation!.user_type == 'OPERATOR') {
         Navigator.pushReplacementNamed(context, '/user-home');
       }
       // }

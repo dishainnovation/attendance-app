@@ -2,7 +2,7 @@ from django.db import models
 
 class Designation(models.Model):
     name = models.CharField(max_length=100)
-    user_type = models.CharField(max_length=100, default='USER') # SUPER_ADMIN/ADMIN/USER
+    user_type = models.CharField(max_length=100, default='OPERATOR') # SUPER_ADMIN/ADMIN/SUPERVISOR/OPERATOR
     remote_checkin = models.BooleanField(default=False) # Allow user to check-in from anywhere
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -68,7 +68,7 @@ class Shift(models.Model):
 class Attendance(models.Model):
     attendance_date = models.DateField(default=None)
     employee = models.ForeignKey(Employee, on_delete=models.PROTECT)
-    site = models.ForeignKey(Site, on_delete=models.SET_NULL, null=True, blank=True)
+    port = models.ForeignKey(Port, on_delete=models.SET_NULL, null=True, blank=True)
     shift = models.ForeignKey(Shift, on_delete=models.PROTECT)
     check_in_time = models.DateTimeField()
     check_out_time = models.DateTimeField(null=True, blank=True)
@@ -84,7 +84,7 @@ class Attendance(models.Model):
         return {
             'id': self.id,
             'employee': self.employee.name,
-            'site': self.site.name,
+            'port': self.port.name,
             'shift': self.shift.name,
             'check_in_time': self.check_in_time,
             'check_out_time': self.check_out_time,

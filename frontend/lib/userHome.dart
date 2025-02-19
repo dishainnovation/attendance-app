@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:camera/camera.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/ShiftModel.dart';
@@ -9,12 +11,16 @@ import 'Models/AttendanceModel.dart';
 import 'Models/EmployeeModel.dart';
 import 'Models/ErrorObject.dart';
 import 'Services/attendanceService.dart';
+import 'Services/employeeService.dart';
+import 'Services/navigationService.dart';
 import 'Services/userNotifier.dart';
 import 'Utility.dart';
 import 'attendance.dart';
 import 'employee.dart';
 import 'widgets/Button.dart';
 import 'widgets/ScaffoldPage.dart';
+import 'widgets/ShiftCard.dart';
+import 'widgets/TakePicture.dart';
 
 class UserHome extends StatefulWidget {
   const UserHome({super.key});
@@ -33,6 +39,20 @@ class _UserHomeState extends State<UserHome> {
   AttendanceModel? attendance;
   ShiftModel? shift;
   double percentageDone = 0.00;
+  bool isLoading = false;
+  bool isProfileCompleted = false;
+
+  checkProfile() {
+    if (user!.profileImage == null) {
+      setState(() {
+        isProfileCompleted = false;
+      });
+    } else {
+      setState(() {
+        isProfileCompleted = true;
+      });
+    }
+  }
 
   getLocation() async {
     try {
@@ -99,6 +119,7 @@ class _UserHomeState extends State<UserHome> {
   void initState() {
     super.initState();
     user = context.read<User>().user;
+    checkProfile();
     getLocation();
     getAttendance();
   }
@@ -112,63 +133,68 @@ class _UserHomeState extends State<UserHome> {
         children: [
           Expanded(
             flex: 6,
-            child: Container(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  user != null ? employeeCard(user!) : Container(),
-                  SizedBox(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Visibility(visible: user != null, child: employeeCard(user!)),
+                Visibility(
+                  visible: !isProfileCompleted,
+                  child: SizedBox(
                     height: 20,
                   ),
-                  attendance == null
-                      ? Container()
-                      : shift != null
-                          ? shiftCard(shift!)
-                          : Container(),
-                  SizedBox(height: 40),
-                  Center(
-                    child: LinearPercentIndicator(
-                      animation: true,
-                      barRadius: Radius.circular(10),
-                      lineHeight: 30.0,
-                      percent: percentageDone,
-                      backgroundColor: Colors.grey[400],
-                      progressColor: Colors.green,
-                      leading: shift != null
-                          ? Text(shift!.startTime!.format(context))
-                          : Container(),
-                      trailing: shift != null
-                          ? Text(shift!.endTime!.format(context))
-                          : Container(),
-                    ),
+                ),
+                Visibility(
+                    visible: !isProfileCompleted,
+                    child: completeProfile(context)),
+                SizedBox(
+                  height: 20,
+                ),
+                shift != null
+                    ? Visibility(
+                        visible: attendance != null && shift != null,
+                        child: ShiftCard(shift: shift!),
+                      )
+                    : Container(),
+                SizedBox(height: 40),
+                Center(
+                  child: LinearPercentIndicator(
+                    animation: true,
+                    barRadius: Radius.circular(10),
+                    lineHeight: 30.0,
+                    percent: percentageDone,
+                    backgroundColor: Colors.grey[400],
+                    progressColor: Colors.green,
+                    leading: shift != null
+                        ? Text(shift!.startTime!.format(context))
+                        : Container(),
+                    trailing: shift != null
+                        ? Text(shift!.endTime!.format(context))
+                        : Container(),
                   ),
-                  SizedBox(height: 40),
-                  Button(
-                    label: attendance != null ? 'Check-Out' : 'Check-In',
-                    color: Colors.green,
-                    width: 200,
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => CheckIn())).then((result) {
-                        getAttendance();
-                      });
-                    },
-                  ),
-                ],
-              ),
+                ),
+                SizedBox(height: 40),
+                Button(
+                  label: attendance != null ? 'Check-Out' : 'Check-In',
+                  color: Colors.green,
+                  width: 200,
+                  onPressed: () {
+                    Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => CheckIn()))
+                        .then((result) {
+                      getAttendance();
+                    });
+                  },
+                ),
+              ],
             ),
           ),
           Expanded(
             flex: 2,
-            child: Container(
-              child: Column(
-                children: [
-                  Divider(height: 40),
-                  tiles(),
-                ],
-              ),
+            child: Column(
+              children: [
+                Divider(height: 40),
+                tiles(),
+              ],
             ),
           ),
         ],
@@ -285,26 +311,31 @@ class _UserHomeState extends State<UserHome> {
             ),
           ),
         ),
-        Card(
-          color: Colors.blue,
-          child: SizedBox(
-            height: 100,
-            width: 110,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.calendar_month_outlined,
-                  size: 50,
-                  color: Colors.white,
-                ),
-                Text(
-                  'Attendance',
-                  style: TextStyle(
+        InkWell(
+          onTap: () {
+            NavigationService.navigateTo('/attendace-report');
+          },
+          child: Card(
+            color: Colors.blue,
+            child: SizedBox(
+              height: 100,
+              width: 110,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.calendar_month_outlined,
+                    size: 50,
                     color: Colors.white,
                   ),
-                ),
-              ],
+                  Text(
+                    'Attendance',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -335,80 +366,60 @@ class _UserHomeState extends State<UserHome> {
     );
   }
 
-  Widget shiftCard(ShiftModel shift) {
-    return Card(
-      color: Colors.white,
-      child: ListTile(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Current Shift'),
-            Text(
-              shift.name,
-              style: TextStyle(fontWeight: FontWeight.bold),
+  Widget completeProfile(BuildContext context) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.5,
+      child: Column(
+        children: [
+          Text(
+            'Please update your profile photo before check-in/check-out.',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
             ),
-          ],
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Divider(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Start Time',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                    Text(
-                      formatTimeOfDay(shift.startTime!, context),
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                  ],
-                ),
-                Container(
-                  width: 1,
-                  height: 40,
-                  color: Colors.grey,
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'End Time',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                    Text(
-                      formatTimeOfDay(shift.endTime!, context),
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                  ],
-                ),
-                Container(
-                  width: 1,
-                  height: 40,
-                  color: Colors.grey,
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Duration Hours',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                    Text(
-                      shift.durationHours.toString(),
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+          Button(
+            label: 'Capture Photo',
+            color: Colors.blue,
+            width: MediaQuery.of(context).size.width * 0.5,
+            onPressed: () async {
+              setState(() {
+                isLoading = true;
+              });
+              final cameras = await availableCameras();
+              final preferedtCamera = cameras[1];
+              Navigator.of(context)
+                  .push(MaterialPageRoute(
+                      builder: (context) =>
+                          TakePictureScreen(camera: preferedtCamera)))
+                  .then((value) async {
+                if (value != null) {
+                  user!.profileImage = value.toString();
+                  user!.employeePhoto = File(value.toString());
+                  await updateEmployee(user!.id, user!, user!.employeePhoto!)
+                      .then((value) async {
+                    context.read<User>().user =
+                        EmployeeModel.fromJson(user!.toJson());
+                    storeUserInfo(user!);
+                    await getLocation();
+                    setState(() {
+                      user = context.read<User>().user!;
+                      isProfileCompleted = true;
+                      isLoading = false;
+                    });
+                  }).catchError((err) {
+                    showSnackBar(context, 'Employee', err.toString());
+                  });
+                } else {
+                  setState(() {
+                    isLoading = false;
+                  });
+                }
+              });
+            },
+          ),
+        ],
       ),
     );
   }
