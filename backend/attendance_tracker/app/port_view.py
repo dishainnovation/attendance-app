@@ -8,7 +8,7 @@ from .serializers import PortSerializer
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def port_list(request):
     if request.method == 'GET':
-        ports = Port.objects.all()
+        ports = Port.objects.all().order_by('name')
         serializer = PortSerializer(ports, many=True)
         return Response(serializer.data)
 

@@ -38,7 +38,8 @@ class _ScreenState extends State<Screen> {
         return AdminHome();
       } else if (user!.designation!.user_type == 'ADMIN') {
         return HomePage();
-      } else if (user!.designation!.user_type == 'USER') {
+      } else if (user!.designation!.user_type == 'SUPERVISOR' ||
+          user!.designation!.user_type == 'OPERATOR') {
         return UserHome();
       }
       return UserHome();

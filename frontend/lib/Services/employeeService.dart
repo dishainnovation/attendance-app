@@ -154,3 +154,23 @@ String generateEmployeeCode(String prefix, List<EmployeeModel> employees) {
   int maxId = emp.id + 1;
   return '${prefix}_${maxId.toString().padLeft(8, '0')}';
 }
+
+Future<List<EmployeeModel>> getEmployeesByPort(int portId) async {
+  try {
+    Uri uriPut = Uri.parse('$url?port_id=$portId');
+    final response =
+        await client.get(uriPut, headers: {"Accept": "application/json"});
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      List<EmployeeModel> employees = data.map((emp) {
+        return EmployeeModel.fromJson(emp as Map<String, dynamic>);
+      }).toList();
+      return employees;
+    } else {
+      throw Exception('Failed to load employees: ${response.reasonPhrase}');
+    }
+  } catch (e) {
+    rethrow;
+  }
+}

@@ -15,7 +15,7 @@ from django.http import HttpResponse
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def attendance_list(request):
     if request.method == 'GET':
-        ports = Attendance.objects.all()
+        ports = Attendance.objects.all().order_by('attendance_date')
         employee = request.GET.get('employee')
         date = request.GET.get('date')
         if(employee is not None and date is not None):

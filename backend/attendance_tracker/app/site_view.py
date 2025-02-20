@@ -7,7 +7,7 @@ from .serializers import SiteSerializer
 class SiteViewSet(viewsets.ModelViewSet):
     serializer_class = SiteSerializer
     def get_queryset(self):
-        queryset = Site.objects.all()
+        queryset = Site.objects.all().order_by('name')
         port_id = self.request.query_params.get('port_id', None)
         if port_id:
             try:

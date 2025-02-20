@@ -11,6 +11,7 @@ class ScaffoldPage extends StatelessWidget {
   final floatingButton;
   final Drawer? drawer;
   final PreferredSizeWidget? bottom;
+  final double? bottomHeight;
   final ErrorObject error;
   const ScaffoldPage(
       {super.key,
@@ -19,7 +20,8 @@ class ScaffoldPage extends StatelessWidget {
       this.floatingButton,
       this.bottom,
       this.drawer,
-      required this.error});
+      required this.error,
+      this.bottomHeight});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,7 @@ class ScaffoldPage extends StatelessWidget {
         appBar: bottom == null
             ? Appbar(title: title)
             : PreferredSize(
-                preferredSize: Size.fromHeight(120.0),
+                preferredSize: Size.fromHeight(bottomHeight!),
                 child: Appbar(title: title, bottom: bottom),
               ),
         drawer: drawer,
