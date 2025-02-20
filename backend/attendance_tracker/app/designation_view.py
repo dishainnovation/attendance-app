@@ -9,7 +9,7 @@ from .serializers import DesignationSerializer
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def designation_list(request):
     if request.method == 'GET':
-        ports = Designation.objects.all()
+        ports = Designation.objects.all().order_by('name')
         serializer = DesignationSerializer(ports, many=True)
         return Response(serializer.data)
 

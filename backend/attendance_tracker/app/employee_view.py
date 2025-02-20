@@ -9,12 +9,19 @@ from django.http import JsonResponse
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def employee_list(request):
     if request.method == 'GET':
-        employees = Employee.objects.select_related('designation').all()
-        employee_data = []
-        for employee in employees:
-            employee_data.append(employee_object(employee))
-        
-        return JsonResponse(employee_data, safe=False)
+        port_id = request.GET.get('port_id')
+        if port_id:
+            employees = Employee.objects.select_related('designation').filter(port=port_id).order_by('name')
+            if employees.exists():
+                employee_data = []
+                for employee in employees:
+                    employee_data.append(employee_object(employee))
+                return JsonResponse(employee_data, safe=False)
+            else:
+                return JsonResponse({'message': 'No employees found for the given port_id'}, safe=False)
+        else:
+            return JsonResponse({'message': 'port_id not provided'}, safe=False)
+
 
     elif request.method == 'POST':
         profile_image = request.FILES.get('profile_image')

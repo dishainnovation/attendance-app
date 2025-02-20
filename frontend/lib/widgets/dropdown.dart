@@ -18,6 +18,12 @@ class DropDown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double dropDownHeight = 200;
+    if (items.length > 10) {
+      dropDownHeight = 500;
+    } else {
+      dropDownHeight = items.length * 70;
+    }
     return Container(
       decoration: BoxDecoration(
           border: Border.all(color: Colors.grey[600]!, width: 0.5),
@@ -27,7 +33,7 @@ class DropDown extends StatelessWidget {
         hintText: title,
         items: items,
         initialItem: initialItem,
-        overlayHeight: 200,
+        overlayHeight: dropDownHeight,
         onChanged: onValueChanged,
         headerBuilder: (context, selectedItem, enabled) {
           return Text(

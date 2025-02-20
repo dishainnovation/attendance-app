@@ -9,7 +9,7 @@ from django.db.models.deletion import ProtectedError
 class ShiftViewSet(viewsets.ModelViewSet):
     serializer_class = ShiftSerializer
     def get_queryset(self):
-        queryset = Shift.objects.all()
+        queryset = Shift.objects.all().order_by('name')
         port_id = self.request.query_params.get('port_id', None)
         shift_id = self.request.query_params.get('id', None)
         if shift_id:
