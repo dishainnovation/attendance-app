@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../Utility.dart';
+import '../Utils/formatter.dart';
 
 class ShiftModel {
   int id;
@@ -24,8 +24,8 @@ class ShiftModel {
     return ShiftModel(
         id: json['id'],
         name: json['name'],
-        startTime: stringToTimeOfDay(json['start_time']),
-        endTime: stringToTimeOfDay(json['end_time']),
+        startTime: Formatter.stringToTimeOfDay(json['start_time']),
+        endTime: Formatter.stringToTimeOfDay(json['end_time']),
         durationHours: json['duration_hours'],
         port: json['port'],
         portName: json['port_name']);

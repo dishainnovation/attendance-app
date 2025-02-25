@@ -8,16 +8,18 @@ class TableWidget extends StatelessWidget {
   final List<DataColumn> columns;
   final List<DataRow> rows;
   final List<dynamic> data;
+  final String fileName;
   const TableWidget(
       {super.key,
       required this.columns,
       required this.rows,
-      required this.data});
+      required this.data,
+      required this.fileName});
 
   @override
   Widget build(BuildContext context) {
     return columns.isEmpty
-        ? Center(
+        ? const Center(
             child: Text('No columns supplied.'),
           )
         : Column(
@@ -90,7 +92,7 @@ class TableWidget extends StatelessWidget {
     }
     // Get the temporary directory
     final Directory tempDir = await getTemporaryDirectory();
-    final String filePath = '${tempDir.path}/data.xlsx';
+    final String filePath = '${tempDir.path}/$fileName.xlsx';
 
     // Write the Excel document to a file
     final List<int> bytes = excel.encode()!;

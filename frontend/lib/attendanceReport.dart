@@ -5,15 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:frontend/Models/AttendanceModel.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:frontend/Models/ErrorObject.dart';
-import 'package:frontend/Utility.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 import 'package:frontend/widgets/Table.dart';
 import 'package:frontend/widgets/TextField.dart';
+import 'package:frontend/Utils/formatter.dart';
 import 'package:provider/provider.dart';
 import 'Models/PortModel.dart';
 import 'Services/attendanceService.dart';
 import 'Services/portService.dart';
 import 'Services/userNotifier.dart';
+import 'Utils/constants.dart';
+import 'Utils/dialogs.dart';
 import 'widgets/dropdown.dart';
 
 class AttendanceReport extends StatefulWidget {
@@ -26,7 +28,7 @@ class AttendanceReport extends StatefulWidget {
 class _AttendanceReportState extends State<AttendanceReport> {
   ErrorObject error = ErrorObject(title: '', message: '');
   EmployeeModel? user;
-  DateTime startDate = DateTime.now().subtract(Duration(days: 30));
+  DateTime startDate = DateTime.now().subtract(const Duration(days: 30));
   DateTime endDate = DateTime.now();
   bool dataFetched = false;
   String path = '';
@@ -68,14 +70,16 @@ class _AttendanceReportState extends State<AttendanceReport> {
       body: Column(
         children: [
           filterCard(screenSize, context),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           dataFetched && attendanceList.isNotEmpty
               ? TableWidget(
                   columns: columns,
                   rows: rows,
                   data: attendanceList,
+                  fileName:
+                      'Attendance Report_${Formatter.displayDate(startDate).replaceAll('-', '_')}_${Formatter.displayDate(endDate).replaceAll('-', '_')}',
                 )
-              : Center(
+              : const Center(
                   child: Text('No data found.'),
                 ),
         ],
@@ -90,79 +94,13 @@ class _AttendanceReportState extends State<AttendanceReport> {
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Date from'),
-                    Textfield(
-                      label: "From",
-                      readOnly: true,
-                      width: screenSize.width * 0.35,
-                      controller: TextEditingController(
-                        text: displayDate(startDate),
-                      ),
-                      onTap: () async {
-                        await selectDate(context).then((value) {
-                          setState(() {
-                            startDate = value;
-                          });
-                        });
-                      },
-                      onFieldSubmitted: (value) {
-                        setState(() {
-                          startDate = DateTime.parse(value);
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Date to'),
-                    Textfield(
-                      label: "To",
-                      readOnly: true,
-                      width: screenSize.width * 0.35,
-                      controller: TextEditingController(
-                        text: displayDate(endDate),
-                      ),
-                      onTap: () async {
-                        await selectDate(context).then((value) {
-                          setState(() {
-                            startDate = value;
-                          });
-                        });
-                      },
-                      onFieldSubmitted: (value) {
-                        setState(() {
-                          endDate = DateTime.parse(value);
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                IconButton(
-                  onPressed: () {
-                    searchData();
-                  },
-                  icon: Icon(
-                    Icons.search_rounded,
-                    size: 40,
-                  ),
-                )
-              ],
-            ),
+            datefilterWidget(screenSize, context),
             Visibility(
               visible: user!.designation!.user_type == 'SUPER_ADMIN' ||
                   user!.designation!.user_type == 'ADMIN',
               child: Row(
                 children: [
-                  Text('More filters'),
+                  const Text('More filters'),
                   InkWell(
                     onTap: () {
                       setState(() {
@@ -186,67 +124,12 @@ class _AttendanceReportState extends State<AttendanceReport> {
                 children: [
                   Visibility(
                     visible: user!.designation!.user_type == 'SUPER_ADMIN',
-                    child: Row(
-                      children: [
-                        Checkbox(
-                          value: filterByPort,
-                          onChanged: (value) {
-                            setState(() {
-                              filterByPort = value!;
-                              selectedPort = null;
-                            });
-                          },
-                        ),
-                        Text('Port'),
-                        SizedBox(width: 10),
-                        ports.isNotEmpty && filterByPort
-                            ? SizedBox(
-                                width: screenSize.width * 0.6,
-                                child: DropDown(
-                                  items:
-                                      ports.map((port) => port.name).toList(),
-                                  initialItem: user!.portName,
-                                  title: 'Select Port',
-                                  onValueChanged: (value) {
-                                    PortModel port =
-                                        getPortByName(value!, ports);
-                                    setState(() {
-                                      selectedPort = port.id;
-                                    });
-                                  },
-                                ),
-                              )
-                            : Container(),
-                      ],
-                    ),
+                    child: portFilterWidget(screenSize),
                   ),
                   Visibility(
                     visible: user!.designation!.user_type == 'SUPER_ADMIN' ||
                         user!.designation!.user_type == 'ADMIN',
-                    child: Row(
-                      children: [
-                        Checkbox(
-                          value: filterByEmployee,
-                          onChanged: (value) {
-                            setState(() {
-                              filterByEmployee = value!;
-                              employeeController.text = '';
-                            });
-                          },
-                        ),
-                        Text('Employee'),
-                        SizedBox(width: 10),
-                        filterByEmployee
-                            ? SizedBox(
-                                width: screenSize.width * 0.5,
-                                child: Textfield(
-                                  label: 'Employee',
-                                  controller: employeeController,
-                                ),
-                              )
-                            : Container(),
-                      ],
-                    ),
+                    child: employeeFilterWidget(screenSize),
                   ),
                 ],
               ),
@@ -257,9 +140,143 @@ class _AttendanceReportState extends State<AttendanceReport> {
     );
   }
 
+  Row employeeFilterWidget(Size screenSize) {
+    return Row(
+      children: [
+        Checkbox(
+          value: filterByEmployee,
+          onChanged: (value) {
+            setState(() {
+              filterByEmployee = value!;
+              employeeController.text = '';
+            });
+          },
+        ),
+        const Text('Employee'),
+        const SizedBox(width: 10),
+        filterByEmployee
+            ? SizedBox(
+                width: screenSize.width * 0.5,
+                child: Textfield(
+                  label: 'Employee',
+                  controller: employeeController,
+                ),
+              )
+            : Container(),
+      ],
+    );
+  }
+
+  Row portFilterWidget(Size screenSize) {
+    return Row(
+      children: [
+        Checkbox(
+          value: filterByPort,
+          onChanged: (value) {
+            setState(() {
+              filterByPort = value!;
+              selectedPort = null;
+            });
+          },
+        ),
+        const Text('Port'),
+        const SizedBox(width: 10),
+        ports.isNotEmpty && filterByPort
+            ? SizedBox(
+                width: screenSize.width * 0.6,
+                child: DropDown(
+                  items: ports.map((port) => port.name).toList(),
+                  initialItem: user!.portName,
+                  title: 'Select Port',
+                  onValueChanged: (value) {
+                    PortModel port = getPortByName(value!, ports);
+                    setState(() {
+                      selectedPort = port.id;
+                    });
+                  },
+                ),
+              )
+            : Container(),
+      ],
+    );
+  }
+
+  Row datefilterWidget(Size screenSize, BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Date from'),
+            Textfield(
+              label: 'From',
+              readOnly: true,
+              width: screenSize.width * 0.35,
+              controller: TextEditingController(
+                text: Formatter.displayDate(startDate),
+              ),
+              onTap: () async {
+                await Dialogs.selectDate(context).then((value) {
+                  setState(() {
+                    startDate = value;
+                  });
+                });
+              },
+              onFieldSubmitted: (value) {
+                setState(() {
+                  startDate = DateTime.parse(value);
+                });
+              },
+            ),
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Date to'),
+            Textfield(
+              label: 'To',
+              readOnly: true,
+              width: screenSize.width * 0.35,
+              controller: TextEditingController(
+                text: Formatter.displayDate(endDate),
+              ),
+              onTap: () async {
+                await Dialogs.selectDate(context).then((value) {
+                  setState(() {
+                    startDate = value;
+                  });
+                });
+              },
+              onFieldSubmitted: (value) {
+                setState(() {
+                  endDate = DateTime.parse(value);
+                });
+              },
+            ),
+          ],
+        ),
+        IconButton(
+          onPressed: () {
+            searchData();
+          },
+          icon: const Icon(
+            Icons.search_rounded,
+            size: 40,
+          ),
+        )
+      ],
+    );
+  }
+
   searchData() async {
-    await downloadReport(formatDate(startDate), formatDate(endDate),
-            selectedPort, employeeController.text)
+    await downloadReport(
+            Formatter.formatDate(startDate),
+            Formatter.formatDate(endDate),
+            selectedPort,
+            employeeController.text)
         .then((result) async {
       if (result.isNotEmpty) {
         setState(() {
@@ -267,15 +284,15 @@ class _AttendanceReportState extends State<AttendanceReport> {
           path = path;
           attendanceList = result;
           columns = [
-            DataColumn(label: Text('Date')),
-            DataColumn(label: Text('Employee')),
-            DataColumn(label: Text('Type')),
-            DataColumn(label: Text('Check-in Photo')),
-            DataColumn(label: Text('Check-in Time')),
-            DataColumn(label: Text('Check-out Photo')),
-            DataColumn(label: Text('Check-out Time')),
-            DataColumn(label: Text('Latitude')),
-            DataColumn(label: Text('Longitude')),
+            const DataColumn(label: Text('Date')),
+            const DataColumn(label: Text('Employee')),
+            const DataColumn(label: Text('Type')),
+            const DataColumn(label: Text('Check-in Photo')),
+            const DataColumn(label: Text('Check-in Time')),
+            const DataColumn(label: Text('Check-out Photo')),
+            const DataColumn(label: Text('Check-out Time')),
+            const DataColumn(label: Text('Latitude')),
+            const DataColumn(label: Text('Longitude')),
           ];
         });
       } else {
@@ -287,7 +304,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
     rows = attendanceList.map((attendance) {
       return DataRow(
         cells: [
-          DataCell(Text(displayDate(attendance.attendanceDate))),
+          DataCell(Text(Formatter.displayDate(attendance.attendanceDate))),
           DataCell(Text(attendance.employeeId.name)),
           DataCell(Text(attendance.attendanceType)),
           DataCell(
@@ -297,7 +314,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
               width: 50,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                return Icon(
+                return const Icon(
                   Icons.image_not_supported_outlined,
                   size: 50,
                   color: Colors.grey,
@@ -305,7 +322,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
               },
             ),
           ),
-          DataCell(Text(displayTime(attendance.checkInTime))),
+          DataCell(Text(Formatter.displayTime(attendance.checkInTime))),
           DataCell(
             Image.network(
               '$baseImageUrl${attendance.checkOutPhoto}',
@@ -313,7 +330,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
               width: 50,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                return Icon(
+                return const Icon(
                   Icons.image_not_supported_outlined,
                   size: 50,
                   color: Colors.grey,
@@ -327,55 +344,5 @@ class _AttendanceReportState extends State<AttendanceReport> {
         ],
       );
     }).toList();
-  }
-
-  Future<List<List<dynamic>>> readExcelFile(List<int> fileName) async {
-    try {
-      final excel = Excel.decodeBytes(fileName);
-
-      // Extract data from the first sheet
-      final List<List<dynamic>> data = [];
-      for (var table in excel.tables.keys) {
-        for (var row in excel.tables[table]?.rows ?? []) {
-          data.add(row);
-        }
-        break;
-      }
-
-      return data;
-    } catch (e) {
-      return [];
-    }
-  }
-
-  excelFile() {
-    var excel = Excel.createExcel();
-
-    var sheet = excel['mySheet'];
-    CellStyle cellStyle = CellStyle(
-      bold: true,
-      italic: true,
-      textWrapping: TextWrapping.WrapText,
-      fontFamily: getFontFamily(FontFamily.Comic_Sans_MS),
-      rotation: 0,
-    );
-    var cell = sheet.cell(CellIndex.indexByString("A1"));
-    cell.value = TextCellValue("Heya How are you I am fine ok goood night");
-    cell.cellStyle = cellStyle;
-
-    var cell2 = sheet.cell(CellIndex.indexByString("E5"));
-    cell2.value = TextCellValue("Heya How night");
-    cell2.cellStyle = cellStyle;
-
-    String outputFile = "/Users/kawal/Desktop/git_projects/r.xlsx";
-
-    //stopwatch.reset();
-    List<int>? fileBytes = excel.save();
-    //print('saving executed in ${stopwatch.elapsed}');
-    if (fileBytes != null) {
-      File(outputFile)
-        ..createSync(recursive: true)
-        ..writeAsBytesSync(fileBytes);
-    }
   }
 }

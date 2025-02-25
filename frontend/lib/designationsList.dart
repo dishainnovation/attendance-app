@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/Designation.dart';
 import 'package:frontend/Services/designationService.dart';
@@ -6,8 +5,9 @@ import 'package:frontend/designation.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 
 import 'Models/ErrorObject.dart';
-import 'Utility.dart';
+import 'Utils/constants.dart';
 import 'widgets/SpinKit.dart';
+import 'Utils/dialogs.dart';
 
 class DesignationsList extends StatefulWidget {
   const DesignationsList({super.key});
@@ -30,14 +30,14 @@ class _DesignationsListState extends State<DesignationsList> {
             setState(() {});
           });
         },
-        child: Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: FutureBuilder<List<DesignationModel>>(
         future: getDesignations(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             if (snapshot.data!.isEmpty) {
-              return Center(child: Text('No designation found'));
+              return const Center(child: Text('No designation found'));
             }
             return SizedBox(
               height: MediaQuery.of(context).size.height * 0.8,
@@ -50,7 +50,7 @@ class _DesignationsListState extends State<DesignationsList> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
-            return Center(
+            return const Center(
                 child: SpinKit(
               type: spinkitType,
             ));
@@ -82,12 +82,12 @@ class _DesignationsListState extends State<DesignationsList> {
                     setState(() {});
                   });
                 },
-                child: Icon(
+                child: const Icon(
                   Icons.edit,
                   color: Colors.green,
                 ),
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               InkWell(
                 onTap: () async {
                   await showDialog(
@@ -96,20 +96,20 @@ class _DesignationsListState extends State<DesignationsList> {
                         false, // User must tap button to close dialog
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: Text('Designation'),
-                        content: SingleChildScrollView(
+                        title: const Text('Designation'),
+                        content: const SingleChildScrollView(
                           child: Text(
                               'Are you sure you want to delete this designation?'),
                         ),
                         actions: <Widget>[
                           TextButton(
-                            child: Text('Approve'),
+                            child: const Text('Approve'),
                             onPressed: () async {
                               Navigator.of(context).pop(true);
                             },
                           ),
                           TextButton(
-                            child: Text('Cancel'),
+                            child: const Text('Cancel'),
                             onPressed: () {
                               Navigator.of(context).pop(false);
                             },
@@ -121,18 +121,19 @@ class _DesignationsListState extends State<DesignationsList> {
                     if (value == true) {
                       await deleteDesignation(designation.id)
                           .then((result) async {
-                        await showMessageDialog(context, 'Designation', result);
+                        await Dialogs.showMessageDialog(
+                            context, 'Designation', result);
                         setState(() {});
                       }).catchError(
                         (err) {
-                          showMessageDialog(
+                          Dialogs.showMessageDialog(
                               context, 'Designation', err.toString());
                         },
                       );
                     }
                   });
                 },
-                child: Icon(
+                child: const Icon(
                   Icons.delete,
                   color: Colors.red,
                 ),

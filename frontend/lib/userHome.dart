@@ -1,6 +1,5 @@
 import 'dart:async';
-import 'dart:io';
-import 'package:camera/camera.dart';
+import 'package:frontend/Utils/location.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/ShiftModel.dart';
@@ -11,16 +10,14 @@ import 'Models/AttendanceModel.dart';
 import 'Models/EmployeeModel.dart';
 import 'Models/ErrorObject.dart';
 import 'Services/attendanceService.dart';
-import 'Services/employeeService.dart';
 import 'Services/navigationService.dart';
 import 'Services/userNotifier.dart';
-import 'Utility.dart';
 import 'attendance.dart';
 import 'employee.dart';
 import 'widgets/Button.dart';
 import 'widgets/ScaffoldPage.dart';
 import 'widgets/ShiftCard.dart';
-import 'widgets/TakePicture.dart';
+import 'Utils/formatter.dart';
 
 class UserHome extends StatefulWidget {
   const UserHome({super.key});
@@ -34,8 +31,7 @@ class _UserHomeState extends State<UserHome> {
   EmployeeModel? user;
   String locationName = '';
   String time = '';
-  double? latitude;
-  double? longitude;
+
   AttendanceModel? attendance;
   ShiftModel? shift;
   double percentageDone = 0.00;
@@ -54,28 +50,10 @@ class _UserHomeState extends State<UserHome> {
     }
   }
 
-  getLocation() async {
-    try {
-      await getCurrentLocation().then((location) async {
-        await getLocationName(location).then((value) => setState(() {
-              locationName = value;
-              setState(() {
-                latitude = location.latitude;
-                longitude = location.longitude;
-              });
-            }));
-      });
-    } catch (e) {
-      setState(() {
-        error = ErrorObject(title: 'Error', message: e.toString());
-      });
-    }
-  }
-
   Future<AttendanceModel?> getAttendance() async {
     AttendanceModel? tempAttendance;
     EmployeeModel user = context.read<User>().user!;
-    await getEmployeeAttendance(user.id, formatDate(DateTime.now()))
+    await getEmployeeAttendance(user.id, Formatter.formatDate(DateTime.now()))
         .then((attendances) {
       if (attendances.isNotEmpty) {
         tempAttendance =
@@ -120,7 +98,6 @@ class _UserHomeState extends State<UserHome> {
     super.initState();
     user = context.read<User>().user;
     checkProfile();
-    getLocation();
     getAttendance();
   }
 
@@ -139,14 +116,14 @@ class _UserHomeState extends State<UserHome> {
                 Visibility(visible: user != null, child: employeeCard(user!)),
                 Visibility(
                   visible: !isProfileCompleted,
-                  child: SizedBox(
+                  child: const SizedBox(
                     height: 20,
                   ),
                 ),
                 Visibility(
                     visible: !isProfileCompleted,
                     child: completeProfile(context)),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
                 shift != null
@@ -155,11 +132,11 @@ class _UserHomeState extends State<UserHome> {
                         child: ShiftCard(shift: shift!),
                       )
                     : Container(),
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
                 Center(
                   child: LinearPercentIndicator(
                     animation: true,
-                    barRadius: Radius.circular(10),
+                    barRadius: const Radius.circular(10),
                     lineHeight: 30.0,
                     percent: percentageDone,
                     backgroundColor: Colors.grey[400],
@@ -172,14 +149,18 @@ class _UserHomeState extends State<UserHome> {
                         : Container(),
                   ),
                 ),
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
                 Button(
-                  label: attendance != null ? 'Check-Out' : 'Check-In',
-                  color: Colors.green,
+                  label: attendance != null && attendance!.checkOutTime == null
+                      ? 'Check-Out'
+                      : 'Check-In',
+                  color: Colors.green[900]!,
                   width: 200,
                   onPressed: () {
-                    Navigator.push(context,
-                            MaterialPageRoute(builder: (context) => CheckIn()))
+                    Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const CheckIn()))
                         .then((result) {
                       getAttendance();
                     });
@@ -192,7 +173,7 @@ class _UserHomeState extends State<UserHome> {
             flex: 2,
             child: Column(
               children: [
-                Divider(height: 40),
+                const Divider(height: 40),
                 tiles(),
               ],
             ),
@@ -212,13 +193,13 @@ class _UserHomeState extends State<UserHome> {
           children: [
             Text(
               employee.designation!.name,
-              style: TextStyle(color: Colors.blueAccent),
+              style: const TextStyle(color: Colors.blueAccent),
             ),
             Text(
               employee.mobileNumber,
-              style: TextStyle(color: Colors.grey),
+              style: const TextStyle(color: Colors.grey),
             ),
-            Divider(
+            const Divider(
               height: 8,
             ),
             Row(
@@ -226,26 +207,26 @@ class _UserHomeState extends State<UserHome> {
               children: [
                 Text(
                   'Code: ${employee.employeeCode}',
-                  style: TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: Colors.grey),
                 ),
                 Text(
                   'Port: ${employee.portName}',
-                  style: TextStyle(color: Colors.black),
+                  style: const TextStyle(color: Colors.black),
                 ),
               ],
             ),
             Text(
               'Gender: ${employee.gender}',
-              style: TextStyle(color: Colors.grey),
+              style: const TextStyle(color: Colors.grey),
             ),
-            Divider(
+            const Divider(
               height: 8,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Birth : ${displayDate(DateTime.parse(employee.dateOfBirth))}',
+                  'Birth : ${Formatter.displayDate(DateTime.parse(employee.dateOfBirth))}',
                   style: TextStyle(
                     color: Colors.grey[900],
                     fontSize: 12,
@@ -257,7 +238,7 @@ class _UserHomeState extends State<UserHome> {
                   height: 20,
                 ),
                 Text(
-                  'Hire Date: ${displayDate(DateTime.parse(employee.dateOfJoining))}',
+                  'Hire Date: ${Formatter.displayDate(DateTime.parse(employee.dateOfJoining))}',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[900],
@@ -287,7 +268,7 @@ class _UserHomeState extends State<UserHome> {
               ),
             );
           },
-          child: Card(
+          child: const Card(
             color: Colors.green,
             child: SizedBox(
               height: 100,
@@ -315,7 +296,7 @@ class _UserHomeState extends State<UserHome> {
           onTap: () {
             NavigationService.navigateTo('/attendace-report');
           },
-          child: Card(
+          child: const Card(
             color: Colors.blue,
             child: SizedBox(
               height: 100,
@@ -339,7 +320,7 @@ class _UserHomeState extends State<UserHome> {
             ),
           ),
         ),
-        Card(
+        const Card(
           color: Colors.deepOrange,
           child: SizedBox(
             height: 100,
@@ -368,54 +349,35 @@ class _UserHomeState extends State<UserHome> {
 
   Widget completeProfile(BuildContext context) {
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.5,
+      // width: MediaQuery.of(context).size.width * 0.5,
       child: Column(
         children: [
-          Text(
+          const Text(
             'Please update your profile photo before check-in/check-out.',
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: FontWeight.bold,
-              color: Colors.red,
+              color: Colors.grey,
             ),
           ),
+          const SizedBox(height: 10),
           Button(
-            label: 'Capture Photo',
-            color: Colors.blue,
+            label: 'Update Profile',
+            color: Colors.red[900]!,
             width: MediaQuery.of(context).size.width * 0.5,
             onPressed: () async {
-              setState(() {
-                isLoading = true;
-              });
-              final cameras = await availableCameras();
-              final preferedtCamera = cameras[1];
-              Navigator.of(context)
-                  .push(MaterialPageRoute(
-                      builder: (context) =>
-                          TakePictureScreen(camera: preferedtCamera)))
-                  .then((value) async {
-                if (value != null) {
-                  user!.profileImage = value.toString();
-                  user!.employeePhoto = File(value.toString());
-                  await updateEmployee(user!.id, user!, user!.employeePhoto!)
-                      .then((value) async {
-                    context.read<User>().user =
-                        EmployeeModel.fromJson(user!.toJson());
-                    storeUserInfo(user!);
-                    await getLocation();
-                    setState(() {
-                      user = context.read<User>().user!;
-                      isProfileCompleted = true;
-                      isLoading = false;
-                    });
-                  }).catchError((err) {
-                    showSnackBar(context, 'Employee', err.toString());
-                  });
-                } else {
-                  setState(() {
-                    isLoading = false;
-                  });
-                }
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Employee(
+                    employee: user,
+                    employeeesList: [],
+                  ),
+                ),
+              ).then((value) {
+                setState(() {
+                  user = context.read<User>().user;
+                });
               });
             },
           ),

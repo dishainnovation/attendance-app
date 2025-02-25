@@ -1,16 +1,16 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:frontend/Models/PortModel.dart';
 
-import '../Utility.dart';
+import 'dioClient.dart';
 
-String url = '${baseUrl}port/';
+String url = 'port/';
 final uri = Uri.parse(url);
+
+final InterceptedClient client = InterceptedClient();
 
 Future<List<PortModel>> getPort() async {
   try {
-    final response =
-        await http.get(uri, headers: {"Accept": "application/json"});
+    final response = await client.get(uri);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -28,7 +28,7 @@ Future<List<PortModel>> getPort() async {
 
 Future<PortModel> createPort(PortModel port) async {
   try {
-    var request = await http.post(uri, body: port.toJson());
+    var request = await client.post(uri, body: port.toJson());
 
     if (request.statusCode == 201) {
       // var responseJson = json.decode(request.body);
@@ -45,7 +45,7 @@ Future<PortModel> createPort(PortModel port) async {
 Future<PortModel> updatePort(int id, PortModel port) async {
   try {
     Uri uriPut = Uri.parse('$url?id=$id');
-    var request = await http.put(uriPut, body: port.toJson());
+    var request = await client.put(uriPut, body: port.toJson());
 
     if (request.statusCode == 200) {
       Map<String, dynamic> data =
@@ -62,7 +62,7 @@ Future<PortModel> updatePort(int id, PortModel port) async {
 Future<String> deletePort(int id) async {
   try {
     Uri uriPut = Uri.parse('$url?id=$id');
-    var request = await http.delete(uriPut);
+    var request = await client.delete(uriPut);
 
     if (request.statusCode == 204) {
       return 'Port deleted successfuly.';

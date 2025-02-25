@@ -8,14 +8,18 @@ import 'package:frontend/Models/SiteModel.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 import 'package:frontend/widgets/SpinKit.dart';
 import 'package:provider/provider.dart';
+import 'package:workmanager/workmanager.dart';
 
 import 'Models/EmployeeModel.dart';
 import 'Models/ShiftModel.dart';
 import 'Services/attendanceService.dart';
 import 'Services/userNotifier.dart';
-import 'Utility.dart';
+import 'Utils/constants.dart';
 import 'widgets/Button.dart';
 import 'widgets/TakePicture.dart';
+import 'Utils/dialogs.dart';
+import 'Utils/formatter.dart';
+import 'Utils/location.dart';
 import 'widgets/loading.dart';
 
 class CheckIn extends StatefulWidget {
@@ -26,6 +30,7 @@ class CheckIn extends StatefulWidget {
 }
 
 class _CheckInState extends State<CheckIn> {
+  EmployeeModel? user;
   ErrorObject error = ErrorObject(title: '', message: '');
   bool _isSaving = false;
   String locationName = '';
@@ -37,21 +42,22 @@ class _CheckInState extends State<CheckIn> {
   bool inTerminal = true;
   bool siteLoaded = false;
   AttendanceModel? attendance;
-  bool isLoading = false;
-  String checkInLabel = "CHeck-In";
+  bool isLoading = true;
+  String checkInLabel = 'CHeck-In';
   String attendanceStatus = 'CHECK_IN';
   bool openAttendance = false;
   bool isAllowCheckOut = false;
 
   getLocation() async {
-    await getCurrentLocation().then((location) async {
+    await LocationService.getCurrentLocation().then((location) async {
       setState(() {
         latitude = location.latitude;
         longitude = location.longitude;
       });
-      await getLocationName(location).then((value) => setState(() {
-            locationName = value;
-          }));
+      await LocationService.getLocationName(location)
+          .then((value) => setState(() {
+                locationName = value;
+              }));
     }).catchError((err) {
       throw Exception('Location permission not granted');
     });
@@ -64,14 +70,14 @@ class _CheckInState extends State<CheckIn> {
       setState(() {
         isLoading = true;
       });
-      EmployeeModel user = context.read<User>().user!;
+      user = context.read<User>().user!;
       await getLocation();
 
-      tempAttendance = await getCurrentAttendance(user, latitude!, longitude!);
+      tempAttendance = await getCurrentAttendance(user!, latitude!, longitude!);
 
       if (tempAttendance!.attendance.attendanceType == 'OVERTIME' &&
           tempAttendance.attendance.id == 0) {
-        await showAlertDialog(context, 'Overtime',
+        await Dialogs.showAlertDialog(context, 'Overtime',
                 "You've wrapped up for the day. Would you like to start your overtime now?")
             .then((result) async {
           if (!result) {
@@ -89,8 +95,8 @@ class _CheckInState extends State<CheckIn> {
         openAttendance = tempAttendance.status == AttendanceStatus.CHECKED_OUT;
 
         checkInLabel = tempAttendance.status != AttendanceStatus.CHECKED_IN
-            ? "Check-In"
-            : "Check-Out";
+            ? 'Check-In'
+            : 'Check-Out';
         attendanceStatus = attendance!.attendanceType == 'OVERTIME'
             ? 'OVERTIME'
             : tempAttendance.status != AttendanceStatus.CHECKED_IN
@@ -112,6 +118,7 @@ class _CheckInState extends State<CheckIn> {
       });
     } catch (e) {
       setState(() {
+        isLoading = false;
         error = ErrorObject(title: 'Error', message: e.toString());
       });
     }
@@ -130,106 +137,115 @@ class _CheckInState extends State<CheckIn> {
     return ScaffoldPage(
       error: error,
       title: user.name,
-      body: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: isLoading
-            ? Center(
-                child: SpinKit(
-                type: spinkitType,
-              ))
-            : Stack(
-                children: [
-                  Column(
+      body: Stack(
+        children: [
+          if (!isLoading)
+            Column(
+              children: [
+                pageTitleCard(),
+                Visibility(
+                  visible: !inTerminal,
+                  child: outOfTerminalCard(),
+                ),
+                Visibility(
+                  visible: inTerminal && isAllowCheckOut,
+                  child: Column(
                     children: [
-                      pageTitleCard(),
-                      inTerminal == false
-                          ? outOfTerminalCard()
-                          : isAllowCheckOut
-                              ? Column(
-                                  children: [
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    openAttendance == true
-                                        ? completedShift()
-                                        : Container(),
-                                    openAttendance == true
-                                        ? Container()
-                                        : Column(
-                                            children: [
-                                              terminalCard(site!),
-                                              shiftCard(shift),
-                                              iamgeCard(context, screenSize),
-                                              SizedBox(height: 20),
-                                              image != null
-                                                  ? Container()
-                                                  : Text(
-                                                      'Capture photo to $checkInLabel',
-                                                      style: TextStyle(
-                                                        color: Colors.red,
-                                                      ),
-                                                    ),
-                                              Button(
-                                                label: checkInLabel,
-                                                color: Colors.green,
-                                                width: 200,
-                                                onPressed: image == null ||
-                                                        shift == null
-                                                    ? null
-                                                    : action,
-                                              ),
-                                            ],
-                                          ),
-                                  ],
-                                )
-                              : SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.7,
-                                  width: MediaQuery.of(context).size.width,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        'Checkout Denied',
-                                        style: TextStyle(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.red[900]),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      SizedBox(height: 20),
-                                      Text(
-                                        'You cannot check out before your scheduled shift end time. Please complete your shift before attempting to check out.',
-                                        style: TextStyle(
-                                            fontSize: 16, color: Colors.black),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      Divider(height: 50),
-                                      Button(
-                                          label: 'Back',
-                                          color: Colors.blue,
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          })
-                                    ],
-                                  )),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Visibility(
+                        visible: openAttendance,
+                        child: completedShift(),
+                      ),
+                      Visibility(
+                        visible: openAttendance == false,
+                        child: Column(
+                          children: [
+                            terminalCard(site!),
+                            shiftCard(shift),
+                            iamgeCard(context, screenSize),
+                            const SizedBox(height: 20),
+                            Visibility(
+                              visible: image == null,
+                              child: Text(
+                                'Capture photo to $checkInLabel',
+                                style: TextStyle(
+                                  color: Colors.red[900],
+                                ),
+                              ),
+                            ),
+                            Button(
+                              label: checkInLabel,
+                              color: Colors.green,
+                              width: 200,
+                              onPressed: image == null || shift == null
+                                  ? null
+                                  : action,
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
-                  _isSaving == true
-                      ? Positioned.fill(
-                          child: LoadingWidget(message: 'Saving...'),
-                        )
-                      : Container(),
-                ],
+                ),
+                Visibility(
+                    visible: !isAllowCheckOut,
+                    child: checkoutDeniedCard(context)),
+              ],
+            ),
+          _isSaving == true
+              ? Positioned.fill(
+                  child: LoadingWidget(message: 'Saving...'),
+                )
+              : Container(),
+          if (isLoading)
+            const Positioned.fill(
+              child: SpinKit(
+                type: spinkitType,
               ),
+            )
+        ],
       ),
     );
+  }
+
+  SizedBox checkoutDeniedCard(BuildContext context) {
+    return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.7,
+        width: MediaQuery.of(context).size.width,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Checkout Denied',
+              style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red[900]),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'You cannot check out before your scheduled shift end time. Please complete your shift before attempting to check out.',
+              style: TextStyle(fontSize: 16, color: Colors.black),
+              textAlign: TextAlign.center,
+            ),
+            const Divider(height: 50),
+            Button(
+                label: 'Back',
+                color: Colors.blue,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                })
+          ],
+        ));
   }
 
   Column outOfTerminalCard() {
     return Column(
       children: [
-        SizedBox(height: 40),
+        const SizedBox(height: 40),
         Text(
           'You are not in any terminal.',
           style: TextStyle(
@@ -237,7 +253,7 @@ class _CheckInState extends State<CheckIn> {
             color: Colors.red[900],
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         Text(
           '$checkInLabel requires you to be within the terminal range.',
           textAlign: TextAlign.center,
@@ -260,7 +276,7 @@ class _CheckInState extends State<CheckIn> {
           children: [
             Text(
               checkInLabel,
-              style: TextStyle(
+              style: const TextStyle(
                   fontFamily: 'Nunito', fontSize: 20, color: Colors.black),
             ),
           ],
@@ -275,7 +291,7 @@ class _CheckInState extends State<CheckIn> {
       child: Card(
           color: Colors.white,
           child: ListTile(
-            title: Text(
+            title: const Text(
               'Shift Completed',
               style: TextStyle(
                 color: Colors.black,
@@ -284,20 +300,20 @@ class _CheckInState extends State<CheckIn> {
             ),
             subtitle:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(
+              const Text(
                 'Your shift has been successfully completed. Thank you for your dedication and hard work.',
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: 13,
                 ),
               ),
-              SizedBox(height: 20),
-              Text(
+              const SizedBox(height: 20),
+              const Text(
                 'Shift Summary:',
                 style:
                     TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
               ),
-              Divider(),
+              const Divider(),
               shift != null
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -305,15 +321,16 @@ class _CheckInState extends State<CheckIn> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            const Text(
                               'Start Time',
                               style: TextStyle(
                                 color: Colors.grey,
                               ),
                             ),
                             Text(
-                              formatTimeOfDay(shift!.startTime!, context),
-                              style: TextStyle(
+                              Formatter.formatTimeOfDay(
+                                  shift!.startTime!, context),
+                              style: const TextStyle(
                                 color: Colors.grey,
                               ),
                             ),
@@ -327,15 +344,16 @@ class _CheckInState extends State<CheckIn> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            const Text(
                               'End Time',
                               style: TextStyle(
                                 color: Colors.grey,
                               ),
                             ),
                             Text(
-                              formatTimeOfDay(shift!.endTime!, context),
-                              style: TextStyle(
+                              Formatter.formatTimeOfDay(
+                                  shift!.endTime!, context),
+                              style: const TextStyle(
                                 color: Colors.grey,
                               ),
                             ),
@@ -349,7 +367,7 @@ class _CheckInState extends State<CheckIn> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            const Text(
                               'Hours Worked',
                               style: TextStyle(
                                 color: Colors.grey,
@@ -357,7 +375,7 @@ class _CheckInState extends State<CheckIn> {
                             ),
                             Text(
                               shift!.durationHours.toString(),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Colors.grey,
                               ),
                             ),
@@ -365,7 +383,7 @@ class _CheckInState extends State<CheckIn> {
                         ),
                       ],
                     )
-                  : Center(
+                  : const Center(
                       child: CircularProgressIndicator(
                       color: Colors.grey,
                     )),
@@ -380,13 +398,14 @@ class _CheckInState extends State<CheckIn> {
     });
     if (attendance!.id == 0) {
       await createAttendance(attendance!, image!).then((value) {
+        scheduleCheckOutTask();
         setState(() {
           _isSaving = false;
         });
         if (value) {
           Navigator.pop(context);
         } else {
-          showMessageDialog(context, 'Attendance',
+          Dialogs.showMessageDialog(context, 'Attendance',
               "Your photo doesn't match the profile. Please try again.");
         }
       });
@@ -394,7 +413,7 @@ class _CheckInState extends State<CheckIn> {
       TimeOfDay currentTime = TimeOfDay.now();
       if (currentTime.isBefore(shift!.endTime!) &&
           attendance!.attendanceType == 'REGULAR') {
-        await showMessageDialog(context, 'Check-out',
+        await Dialogs.showMessageDialog(context, 'Check-out',
             "You cannot check out now as your check-out time doesn't correspond with the shift's end time.");
         setState(() {
           _isSaving = false;
@@ -410,6 +429,24 @@ class _CheckInState extends State<CheckIn> {
     }
   }
 
+  void scheduleCheckOutTask() {
+    Workmanager().registerPeriodicTask(
+      'autoCheckOutTask', // Unique name for the task
+      'autoCheckOut', // Task name
+      frequency: const Duration(minutes: 1),
+      constraints: Constraints(
+        networkType: NetworkType.connected,
+        requiresBatteryNotLow: true,
+      ),
+      initialDelay: Duration(
+          hours: shift!
+              .durationHours), // Adjust the duration according to the shift length
+      inputData: {
+        'user': user?.id, // Pass any necessary data
+      },
+    );
+  }
+
   Card iamgeCard(BuildContext context, Size screenSize) {
     return Card(
       color: Colors.white,
@@ -421,16 +458,22 @@ class _CheckInState extends State<CheckIn> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               image != null
-                  ? Image.file(
-                      image!,
-                      height: screenSize.width * 0.4,
-                      width: screenSize.width * 0.4,
-                      fit: BoxFit.cover,
+                  ? Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey, width: 0.5),
+                          borderRadius: BorderRadius.circular(7)),
+                      child: Image.file(
+                        image!,
+                        height: screenSize.width * 0.4,
+                        width: screenSize.width * 0.4,
+                        fit: BoxFit.cover,
+                      ),
                     )
                   : Icon(
-                      Icons.image,
+                      Icons.image_outlined,
                       size: screenSize.width * 0.4,
-                      color: Colors.grey,
+                      color: Colors.grey[300],
                     ),
               Button(
                 width: 140,
@@ -467,7 +510,7 @@ class _CheckInState extends State<CheckIn> {
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Current Shift:',
                     style: TextStyle(
                       fontSize: 14,
@@ -476,7 +519,7 @@ class _CheckInState extends State<CheckIn> {
                   // Divider(),
                   Text(
                     shift.name,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
@@ -486,20 +529,22 @@ class _CheckInState extends State<CheckIn> {
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Divider(),
+                  const Divider(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Start Time',
                             style: TextStyle(color: Colors.grey, fontSize: 12),
                           ),
                           Text(
-                            formatTimeOfDay(shift.startTime!, context),
-                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                            Formatter.formatTimeOfDay(
+                                shift.startTime!, context),
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 12),
                           ),
                         ],
                       ),
@@ -511,13 +556,14 @@ class _CheckInState extends State<CheckIn> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'End Time',
                             style: TextStyle(color: Colors.grey, fontSize: 12),
                           ),
                           Text(
-                            formatTimeOfDay(shift.endTime!, context),
-                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                            Formatter.formatTimeOfDay(shift.endTime!, context),
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 12),
                           ),
                         ],
                       ),
@@ -529,13 +575,14 @@ class _CheckInState extends State<CheckIn> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Duration Hours',
                             style: TextStyle(color: Colors.grey, fontSize: 12),
                           ),
                           Text(
                             shift.durationHours.toString(),
-                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 12),
                           ),
                         ],
                       ),
@@ -556,20 +603,20 @@ class _CheckInState extends State<CheckIn> {
       color: Colors.white,
       child: ListTile(
         isThreeLine: true,
-        contentPadding: EdgeInsets.all(10),
+        contentPadding: const EdgeInsets.all(10),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               "'Hello! You've entered the Terminal:",
               style: TextStyle(
                 fontSize: 14,
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               site.name,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
           ],
         ),
@@ -577,7 +624,7 @@ class _CheckInState extends State<CheckIn> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Divider(
+            const Divider(
               thickness: 1,
               height: 5,
             ),
@@ -587,13 +634,13 @@ class _CheckInState extends State<CheckIn> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Latitude',
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                     Text(
                       '${site.latitude}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -605,13 +652,13 @@ class _CheckInState extends State<CheckIn> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Longitude',
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                     Text(
                       '${site.longitude}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
                 ),

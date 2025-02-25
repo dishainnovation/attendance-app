@@ -20,7 +20,6 @@ class Command(BaseCommand):
 
             if sheet_name == 'Designations':
                 for index, row in df.iterrows():
-                    print(row)
                     designation, created = Designation.objects.get_or_create(
                         name=row['name'],
                         defaults={
@@ -30,7 +29,6 @@ class Command(BaseCommand):
                     )
             elif sheet_name == 'Ports':
                 for index, row in df.iterrows():
-                    print(row)
                     port, created = Port.objects.get_or_create(
                         name=row['name'],
                         defaults={
@@ -39,12 +37,12 @@ class Command(BaseCommand):
                     )
             elif sheet_name == 'Employees':
                 for index, row in df.iterrows():
-                    print(row)
                     designation = Designation.objects.get(name=row['designation'])
                     port = Port.objects.get(name=row['port'])
                     Employee.objects.get_or_create(
                         employee_code=row['employee_code'],
                         defaults={
+                            'profile_image': row['profile_image'],
                             'name': row['name'],
                             'gender': row['gender'],
                             'date_of_birth': row['date_of_birth'],
@@ -57,7 +55,6 @@ class Command(BaseCommand):
                     )
             elif sheet_name == 'Shifts':
                 for index, row in df.iterrows():
-                    print(row)
                     port = Port.objects.get(name=row['port'])
                     Shift.objects.get_or_create(
                         port=port,
@@ -70,7 +67,6 @@ class Command(BaseCommand):
                     )
             elif sheet_name == 'Terminals':
                 for index, row in df.iterrows():
-                    print(row)
                     port = Port.objects.get(name=row['port'])
                     Site.objects.get_or_create(
                         port=port,

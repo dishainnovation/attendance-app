@@ -1,22 +1,27 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/SiteModel.dart';
+import 'package:intl/intl.dart';
 import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:workmanager/workmanager.dart';
 import '../Models/AttendanceModel.dart';
 import '../Models/EmployeeModel.dart';
 import '../Models/ShiftModel.dart';
-import '../Utility.dart';
 import 'package:http/http.dart' as http;
 
+import '../Utils/formatter.dart';
+import '../Utils/userInfo.dart';
+import 'dioClient.dart';
 import 'shiftService.dart';
 import 'terminalService.dart';
 
-String url = '${baseUrl}attendance/';
+String url = 'attendance/';
 final uri = Uri.parse(url);
+
+final InterceptedClient client = InterceptedClient();
 
 Future<bool> createAttendance(AttendanceModel attendance, File file) async {
   try {
@@ -37,7 +42,7 @@ Future<bool> createAttendance(AttendanceModel attendance, File file) async {
       ),
     );
 
-    http.StreamedResponse response = await request.send();
+    http.StreamedResponse response = await client.send(request);
 
     if (response.statusCode == 201) {
       return true;
@@ -75,7 +80,29 @@ Future<bool> updateAttendance(
       ),
     );
 
-    http.StreamedResponse response = await request.send();
+    http.StreamedResponse response = await client.send(request);
+
+    if (response.statusCode == 201) {
+      return true;
+    } else {
+      throw Exception('Failed to save attendances: ${response.reasonPhrase}');
+    }
+  } catch (e) {
+    throw Exception('Error occurred: $e');
+  }
+}
+
+Future<bool> updateAttendanceAutoCheckout(
+    int id, AttendanceModel attendance) async {
+  try {
+    Uri uriPut = Uri.parse('$url?id=$id');
+    var request = http.MultipartRequest('PUT', uriPut);
+
+    attendance.toJson().forEach((key, value) {
+      request.fields[key] = value.toString();
+    });
+
+    http.StreamedResponse response = await client.send(request);
 
     if (response.statusCode == 201) {
       return true;
@@ -90,7 +117,7 @@ Future<bool> updateAttendance(
 Future<List<AttendanceModel>> getAttendance() async {
   try {
     final response =
-        await http.get(uri, headers: {"Accept": "application/json"});
+        await client.get(uri, headers: {'Accept': 'application/json'});
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -113,8 +140,7 @@ Future<List<AttendanceModel>> getEmployeeAttendance(
     if (date != null) {
       uri = Uri.parse('$url?employee=$employeeId&date=$date');
     }
-    final response =
-        await http.get(uri, headers: {"Accept": "application/json"});
+    final response = await client.get(uri);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -143,7 +169,7 @@ Future<CurrentAttendance?> getCurrentAttendance(
   });
   if (tempShift != null) {
     AttendanceModel? tempAttendance;
-    await getEmployeeAttendance(user.id, formatDate(DateTime.now()))
+    await getEmployeeAttendance(user.id, Formatter.formatDate(DateTime.now()))
         .then((attendances) {
       if (attendances.isNotEmpty) {
         if (attendances.length > 1) {
@@ -188,7 +214,7 @@ Future<CurrentAttendance?> getCurrentAttendance(
             attendanceDate: DateTime.now(),
             employeeId: user,
             shiftId: tempShift?.id,
-            portId: tempSite?.id,
+            portId: tempSite?.port,
             checkInTime: DateTime.now(),
             checkInPhoto: null,
             latitude: latitude,
@@ -240,8 +266,8 @@ Future<List<AttendanceModel>> downloadReport(
     queryParameters['employee_name'] = employee;
   }
 
-  final url = Uri.parse('${baseUrl}attendance-report/');
-  final response = await http.get(
+  final url = Uri.parse('attendance-report/');
+  final response = await client.get(
     url.replace(queryParameters: queryParameters),
   );
 
@@ -254,4 +280,40 @@ Future<List<AttendanceModel>> downloadReport(
   } else {
     return [];
   }
+}
+
+Future<bool> autoCheckout() async {
+  EmployeeModel? user = await UserInfo.getUserInfo();
+
+  await getEmployeeAttendance(
+          user!.id, DateFormat('yyyy-MM-dd').format(DateTime.now()))
+      .then((attendances) async {
+    if (attendances.isNotEmpty) {
+      AttendanceModel? att = attendances.firstWhere((attendance) {
+        return attendance.checkOutTime == null;
+      });
+      if (att.attendanceType == 'OVERTIME') {
+        await updateAttendanceAutoCheckout(att.id, att)
+            .then((value) {})
+            .then((result) {
+          Workmanager().cancelByUniqueName('autoCheckOutTask');
+        });
+        return true;
+      }
+      TimeOfDay shiftEndTime = TimeOfDay.now();
+      await getShiftById(att.shiftId!).then((result) {
+        shiftEndTime = result[0].endTime!;
+      });
+      TimeOfDay now = TimeOfDay.now();
+      if (now.isAfter(shiftEndTime)) {
+        await updateAttendanceAutoCheckout(att.id, att)
+            .then((value) {})
+            .then((result) {
+          Workmanager().cancelByUniqueName('autoCheckOutTask');
+        });
+      }
+    }
+  });
+
+  return true;
 }

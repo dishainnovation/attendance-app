@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/Utils/formatter.dart';
 
 import '../Models/ShiftModel.dart';
-import '../Utility.dart';
 
 class ShiftCard extends StatelessWidget {
   final ShiftModel shift;
@@ -37,7 +37,7 @@ class ShiftCard extends StatelessWidget {
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                     Text(
-                      formatTimeOfDay(shift.startTime!, context),
+                      Formatter.formatTimeOfDay(shift.startTime!, context),
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
@@ -55,7 +55,7 @@ class ShiftCard extends StatelessWidget {
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                     Text(
-                      formatTimeOfDay(shift.endTime!, context),
+                      Formatter.formatTimeOfDay(shift.endTime!, context),
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],

@@ -202,6 +202,6 @@ class SpinKit extends StatelessWidget {
       default:
     }
 
-    return spinkit;
+    return Center(child: spinkit);
   }
 }

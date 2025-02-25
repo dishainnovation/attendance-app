@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'Models/ErrorObject.dart';
@@ -6,10 +5,11 @@ import 'Models/PortModel.dart';
 import 'Models/ShiftModel.dart';
 import 'Services/portService.dart';
 import 'Services/shiftService.dart';
-import 'Utility.dart';
 import 'widgets/Button.dart';
 import 'widgets/ScaffoldPage.dart';
 import 'widgets/TextField.dart';
+import 'Utils/dialogs.dart';
+import 'Utils/formatter.dart';
 import 'widgets/dropdown.dart';
 import 'widgets/loading.dart';
 
@@ -31,8 +31,8 @@ class _ShiftState extends State<Shift> {
   ShiftModel shift = ShiftModel(
       id: 0,
       name: '',
-      startTime: TimeOfDay(hour: 0, minute: 0),
-      endTime: TimeOfDay(hour: 0, minute: 0),
+      startTime: const TimeOfDay(hour: 0, minute: 0),
+      endTime: const TimeOfDay(hour: 0, minute: 0),
       durationHours: 0,
       port: 0);
 
@@ -88,7 +88,7 @@ class _ShiftState extends State<Shift> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Card(
             color: Colors.white,
             child: Padding(
@@ -96,7 +96,7 @@ class _ShiftState extends State<Shift> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Name'),
+                  const Text('Name'),
                   Textfield(
                     label: 'Name',
                     controller: nameController,
@@ -107,11 +107,12 @@ class _ShiftState extends State<Shift> {
                       return null;
                     },
                   ),
-                  Text('Start Time'),
+                  const Text('Start Time'),
                   Textfield(
                     label: 'Start Time',
                     controller: TextEditingController(
-                        text: formatTimeOfDay(shift.startTime!, context)),
+                        text: Formatter.formatTimeOfDay(
+                            shift.startTime!, context)),
                     onTap: () async {
                       await selectTime(context, shift.startTime).then((value) {
                         if (value != null) {
@@ -132,11 +133,12 @@ class _ShiftState extends State<Shift> {
                       return null;
                     },
                   ),
-                  Text('End Time'),
+                  const Text('End Time'),
                   Textfield(
                     label: 'End Time',
                     controller: TextEditingController(
-                        text: formatTimeOfDay(shift.endTime!, context)),
+                        text:
+                            Formatter.formatTimeOfDay(shift.endTime!, context)),
                     onTap: () async {
                       await selectTime(context, shift.startTime).then((value) {
                         if (value != null) {
@@ -157,7 +159,7 @@ class _ShiftState extends State<Shift> {
                       return null;
                     },
                   ),
-                  Text('Duration Hours'),
+                  const Text('Duration Hours'),
                   Textfield(
                     label: 'Geofencing Area (in meters)',
                     controller: durationController,
@@ -169,7 +171,7 @@ class _ShiftState extends State<Shift> {
                       return null;
                     },
                   ),
-                  Text('Port'),
+                  const Text('Port'),
                   ports.isNotEmpty
                       ? DropDown(
                           items: ports.map((port) => port.name).toList(),
@@ -193,7 +195,7 @@ class _ShiftState extends State<Shift> {
               ),
             ),
           ),
-          SizedBox(
+          const SizedBox(
             height: 20,
           ),
           Button(
@@ -217,7 +219,7 @@ class _ShiftState extends State<Shift> {
       return;
     }
     if (shift.port == 0) {
-      await showMessageDialog(context, page, 'Please select port.');
+      await Dialogs.showMessageDialog(context, page, 'Please select port.');
       return;
     }
     setState(() {
@@ -232,26 +234,28 @@ class _ShiftState extends State<Shift> {
           setState(() {
             _isSaving = false;
           });
-          await showMessageDialog(context, page, 'Shift saved successfuly.');
+          await Dialogs.showMessageDialog(
+              context, page, 'Shift saved successfuly.');
           Navigator.pop(context);
         }).catchError((err) {
           setState(() {
             _isSaving = false;
           });
-          showMessageDialog(context, page, err.toString());
+          Dialogs.showMessageDialog(context, page, err.toString());
         });
       } else {
         await updateShift(shift.id, shift).then((response) async {
           setState(() {
             _isSaving = false;
           });
-          await showMessageDialog(context, page, 'Shift saved successfuly.');
+          await Dialogs.showMessageDialog(
+              context, page, 'Shift saved successfuly.');
           Navigator.pop(context);
         }).catchError((err) {
           setState(() {
             _isSaving = false;
           });
-          showMessageDialog(context, page, err.toString());
+          Dialogs.showMessageDialog(context, page, err.toString());
         });
       }
     } catch (e) {

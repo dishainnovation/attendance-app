@@ -21,7 +21,7 @@ class ScaffoldPage extends StatelessWidget {
       this.bottom,
       this.drawer,
       required this.error,
-      this.bottomHeight});
+      this.bottomHeight = 120});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,7 @@ class ScaffoldPage extends StatelessWidget {
         child: UnfocusOnTap(
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        backgroundColor: Colors.green[50],
+        // backgroundColor: Colors.green[50],
         appBar: bottom == null
             ? Appbar(title: title)
             : PreferredSize(
@@ -40,7 +40,7 @@ class ScaffoldPage extends StatelessWidget {
         drawer: drawer,
         floatingActionButton: floatingButton,
         body: Padding(
-          padding: EdgeInsets.all(10.0),
+          padding: const EdgeInsets.all(10.0),
           child: body,
         ),
       ),

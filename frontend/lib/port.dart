@@ -1,13 +1,12 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/PortModel.dart';
 import 'package:frontend/Services/portService.dart';
-import 'package:frontend/Utility.dart';
 import 'package:frontend/widgets/Button.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 
 import 'Models/ErrorObject.dart';
 import 'widgets/TextField.dart';
+import 'Utils/dialogs.dart';
 import 'widgets/loading.dart';
 
 class Port extends StatefulWidget {
@@ -71,7 +70,7 @@ class _PortState extends State<Port> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Card(
                   color: Colors.white,
                   child: Padding(
@@ -79,7 +78,7 @@ class _PortState extends State<Port> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Name'),
+                        const Text('Name'),
                         Textfield(
                           label: 'Name',
                           controller: nameController,
@@ -90,7 +89,7 @@ class _PortState extends State<Port> {
                             return null;
                           },
                         ),
-                        Text('Location'),
+                        const Text('Location'),
                         Textfield(
                           label: 'Location',
                           controller: locationController,
@@ -105,7 +104,7 @@ class _PortState extends State<Port> {
                     ),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 10,
                 ),
                 Button(
@@ -134,26 +133,28 @@ class _PortState extends State<Port> {
           setState(() {
             isSaving = false;
           });
-          await showMessageDialog(context, page, 'Port saved successfuly.');
+          await Dialogs.showMessageDialog(
+              context, page, 'Port saved successfuly.');
           Navigator.pop(context);
         }).catchError((err) {
           setState(() {
             isSaving = false;
           });
-          showMessageDialog(context, page, err.toString());
+          Dialogs.showMessageDialog(context, page, err.toString());
         });
       } else {
         await createPort(port).then((response) async {
           setState(() {
             isSaving = false;
           });
-          await showMessageDialog(context, page, 'Port saved successfuly.');
+          await Dialogs.showMessageDialog(
+              context, page, 'Port saved successfuly.');
           Navigator.pop(context);
         }).catchError((err) {
           setState(() {
             isSaving = false;
           });
-          showMessageDialog(context, page, err.toString());
+          Dialogs.showMessageDialog(context, page, err.toString());
         });
       }
     } catch (e) {

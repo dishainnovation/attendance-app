@@ -1,17 +1,18 @@
 import 'dart:convert';
 import 'package:frontend/Models/EmployeeModel.dart';
-import 'package:http/http.dart' as http;
 import 'package:frontend/Models/SiteModel.dart';
 
-import '../Utility.dart';
+import '../Utils/location.dart';
+import 'dioClient.dart';
 
-String url = '${baseUrl}site/';
+String url = 'site/';
 Uri uri = Uri.parse(url);
+
+final InterceptedClient client = InterceptedClient();
 
 Future<List<SiteModel>> getSite() async {
   try {
-    final response =
-        await http.get(uri, headers: {"Accept": "application/json"});
+    final response = await client.get(uri);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -29,7 +30,7 @@ Future<List<SiteModel>> getSite() async {
 
 Future<SiteModel> createSite(SiteModel site) async {
   try {
-    var request = await http.post(uri, body: site.toJson());
+    var request = await client.post(uri, body: site.toJson());
 
     if (request.statusCode == 201) {
       return SiteModel.fromJson(
@@ -45,7 +46,7 @@ Future<SiteModel> createSite(SiteModel site) async {
 Future<SiteModel> updateSite(int id, SiteModel site) async {
   try {
     Uri uriPut = Uri.parse('$url$id/');
-    var request = await http.put(uriPut, body: site.toJson());
+    var request = await client.put(uriPut, body: site.toJson());
 
     if (request.statusCode == 200) {
       Map<String, dynamic> data =
@@ -62,7 +63,7 @@ Future<SiteModel> updateSite(int id, SiteModel site) async {
 Future<String> deleteSite(int id) async {
   try {
     Uri uriPut = Uri.parse('$url$id/');
-    var request = await http.delete(uriPut);
+    var request = await client.delete(uriPut);
 
     if (request.statusCode == 204) {
       return 'Site deleted successfuly.';
@@ -77,8 +78,7 @@ Future<String> deleteSite(int id) async {
 Future<List<SiteModel>> getSitesByPort(int portId) async {
   try {
     uri = Uri.parse('$url?port_id=$portId');
-    final response =
-        await http.get(uri, headers: {"Accept": "application/json"});
+    final response = await client.get(uri);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -98,7 +98,7 @@ Future<SiteModel> getSiteByLocation(EmployeeModel employee, int portId,
     double currentLatitude, double currentLongitude) async {
   List<SiteModel> sites = await getSitesByPort(portId);
   SiteModel site = sites.firstWhere((site) {
-    double distance = calculateDistance(
+    double distance = LocationService.calculateDistance(
         site.latitude, site.longitude, currentLatitude, currentLongitude);
     if (!employee.designation!.remote_checkin && distance > site.geoFenceArea) {
       return false;

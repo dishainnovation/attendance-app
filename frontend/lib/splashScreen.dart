@@ -1,10 +1,9 @@
-// ignore: file_names
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
+import 'package:frontend/Utils/userInfo.dart';
 import 'package:provider/provider.dart';
 
 import 'Services/userNotifier.dart';
-import 'Utility.dart';
 
 class Splashscreen extends StatefulWidget {
   final bool isLoggedIn;
@@ -27,7 +26,7 @@ class _SplashscreenState extends State<Splashscreen> {
     if (widget.isLoggedIn == false) {
       Navigator.pushReplacementNamed(context, '/login');
     } else {
-      EmployeeModel? user = await getUserInfo();
+      EmployeeModel? user = await UserInfo.getUserInfo();
       context.read<User>().user = EmployeeModel.fromJson(user!.toJson());
 
       // if (user == null) {
@@ -53,9 +52,9 @@ class _SplashscreenState extends State<Splashscreen> {
         child: Container(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
-          decoration: BoxDecoration(
-              image: DecorationImage(
-                  image: AssetImage('assets/images/splash.png'))),
+          decoration: const BoxDecoration(
+              image: const DecorationImage(
+                  image: const AssetImage('assets/images/splash.png'))),
           child: Image.asset('assets/images/splash.png'),
         ),
       ),

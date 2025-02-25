@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 
-import '../Utility.dart';
+import '../Utils/constants.dart';
 
 class InterceptedClient extends http.BaseClient {
   final http.Client _inner = http.Client();
@@ -28,6 +28,7 @@ class InterceptedClient extends http.BaseClient {
 
     // Add request interceptor logic here
     print('Request: ${newRequest.method} ${newRequest.url}');
+    newRequest.headers['Accept'] = 'application/json';
     newRequest.headers['Authorization'] = 'Bearer your_token_here';
 
     try {

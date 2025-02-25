@@ -20,6 +20,8 @@ class Tile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Card(
+        elevation: 2,
+        shadowColor: Colors.grey,
         color: color,
         child: SizedBox(
           height: size,

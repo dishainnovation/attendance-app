@@ -1,14 +1,14 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend/Utility.dart';
 import 'package:frontend/terminalsList.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 
 import 'Models/ErrorObject.dart';
 import 'Models/PortModel.dart';
 import 'Services/portService.dart';
+import 'Utils/constants.dart';
 import 'port.dart';
 import 'widgets/SpinKit.dart';
+import 'Utils/dialogs.dart';
 
 class Portslist extends StatefulWidget {
   const Portslist({super.key});
@@ -31,7 +31,7 @@ class _PortslistState extends State<Portslist> {
             setState(() {});
           });
         },
-        child: Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: portsList(),
     );
@@ -43,7 +43,7 @@ class _PortslistState extends State<Portslist> {
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           if (snapshot.data!.isEmpty) {
-            return Center(child: Text('No ports found'));
+            return const Center(child: Text('No ports found'));
           }
           return SizedBox(
             height: MediaQuery.of(context).size.height * 0.8,
@@ -56,7 +56,7 @@ class _PortslistState extends State<Portslist> {
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else {
-          return Center(
+          return const Center(
               child: SpinKit(
             type: spinkitType,
           ));
@@ -80,7 +80,7 @@ class _PortslistState extends State<Portslist> {
         title: Text(port.name),
         subtitle: Text(
           port.location,
-          style: TextStyle(color: Colors.grey),
+          style: const TextStyle(color: Colors.grey),
         ),
         trailing: SizedBox(
           width: 60,
@@ -98,12 +98,12 @@ class _PortslistState extends State<Portslist> {
                     setState(() {});
                   });
                 },
-                child: Icon(
+                child: const Icon(
                   Icons.edit,
                   color: Colors.green,
                 ),
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               InkWell(
                 onTap: () async {
                   await showDialog(
@@ -112,30 +112,30 @@ class _PortslistState extends State<Portslist> {
                         false, // User must tap button to close dialog
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: Text('Port'),
-                        content: SingleChildScrollView(
+                        title: const Text('Port'),
+                        content: const SingleChildScrollView(
                           child: Text(
                               'Are you sure you want to delete this port?'),
                         ),
                         actions: <Widget>[
                           TextButton(
-                            child: Text('Approve'),
+                            child: const Text('Approve'),
                             onPressed: () async {
                               Navigator.of(context).pop();
                               await deletePort(port.id).then((result) async {
-                                await showMessageDialog(
+                                await Dialogs.showMessageDialog(
                                     context, 'Port', result);
                                 setState(() {});
                               }).catchError(
                                 (err) {
-                                  showMessageDialog(
+                                  Dialogs.showMessageDialog(
                                       context, 'Port', err.toString());
                                 },
                               );
                             },
                           ),
                           TextButton(
-                            child: Text('Cancel'),
+                            child: const Text('Cancel'),
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
@@ -145,7 +145,7 @@ class _PortslistState extends State<Portslist> {
                     },
                   );
                 },
-                child: Icon(
+                child: const Icon(
                   Icons.delete,
                   color: Colors.red,
                 ),

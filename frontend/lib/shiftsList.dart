@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Services/shiftService.dart';
 import 'package:frontend/shift.dart';
@@ -8,8 +7,10 @@ import 'Models/ErrorObject.dart';
 import 'Models/PortModel.dart';
 import 'Models/ShiftModel.dart';
 import 'Services/portService.dart';
-import 'Utility.dart';
+import 'Utils/constants.dart';
 import 'widgets/SpinKit.dart';
+import 'Utils/dialogs.dart';
+import 'Utils/formatter.dart';
 import 'widgets/dropdown.dart';
 
 class ShiftsList extends StatefulWidget {
@@ -56,7 +57,7 @@ class _ShiftsListState extends State<ShiftsList> {
       return ScaffoldPage(
         error: error,
         title: 'Shifts List',
-        body: Center(
+        body: const Center(
             child: SpinKit(
           type: spinkitType,
         )),
@@ -74,10 +75,10 @@ class _ShiftsListState extends State<ShiftsList> {
             });
           });
         },
-        child: Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       bottom: PreferredSize(
-          preferredSize: Size.fromHeight(30),
+          preferredSize: const Size.fromHeight(30),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: DropDown(
@@ -98,7 +99,7 @@ class _ShiftsListState extends State<ShiftsList> {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             if (snapshot.data!.isEmpty) {
-              return Center(child: Text('No shift found'));
+              return const Center(child: Text('No shift found'));
             }
             return SizedBox(
               height: MediaQuery.of(context).size.height - 231,
@@ -111,7 +112,7 @@ class _ShiftsListState extends State<ShiftsList> {
           } else if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
           } else {
-            return Center(
+            return const Center(
               child: Text('Select Port'),
             );
           }
@@ -128,24 +129,24 @@ class _ShiftsListState extends State<ShiftsList> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Timings',
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
-            Divider(),
+            const Divider(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Start Time',
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                     Text(
-                      formatTimeOfDay(shift.startTime!, context),
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                      Formatter.formatTimeOfDay(shift.startTime!, context),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
                 ),
@@ -157,13 +158,13 @@ class _ShiftsListState extends State<ShiftsList> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'End Time',
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                     Text(
-                      formatTimeOfDay(shift.endTime!, context),
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                      Formatter.formatTimeOfDay(shift.endTime!, context),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
                 ),
@@ -175,13 +176,13 @@ class _ShiftsListState extends State<ShiftsList> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Duration',
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                     Text(
                       shift.durationHours.toString(),
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
                 ),
@@ -207,12 +208,12 @@ class _ShiftsListState extends State<ShiftsList> {
                     });
                   });
                 },
-                child: Icon(
+                child: const Icon(
                   Icons.edit,
                   color: Colors.green,
                 ),
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               InkWell(
                 onTap: () async {
                   await showDialog(
@@ -221,20 +222,20 @@ class _ShiftsListState extends State<ShiftsList> {
                         false, // User must tap button to close dialog
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: Text('Shift'),
-                        content: SingleChildScrollView(
+                        title: const Text('Shift'),
+                        content: const SingleChildScrollView(
                           child: Text(
                               'Are you sure you want to delete this shift?'),
                         ),
                         actions: <Widget>[
                           TextButton(
-                            child: Text('Approve'),
+                            child: const Text('Approve'),
                             onPressed: () async {
                               Navigator.of(context).pop(true);
                             },
                           ),
                           TextButton(
-                            child: Text('Cancel'),
+                            child: const Text('Cancel'),
                             onPressed: () {
                               Navigator.of(context).pop(false);
                             },
@@ -248,16 +249,18 @@ class _ShiftsListState extends State<ShiftsList> {
                         setState(() {
                           futureShifts = getShiftsByPort(selectedPort!.id);
                         });
-                        await showMessageDialog(context, 'Shift', result);
+                        await Dialogs.showMessageDialog(
+                            context, 'Shift', result);
                       }).catchError(
                         (err) {
-                          showMessageDialog(context, 'Shift', err.toString());
+                          Dialogs.showMessageDialog(
+                              context, 'Shift', err.toString());
                         },
                       );
                     }
                   });
                 },
-                child: Icon(
+                child: const Icon(
                   Icons.delete,
                   color: Colors.red,
                 ),
