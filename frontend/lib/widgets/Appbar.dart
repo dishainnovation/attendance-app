@@ -1,7 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/login.dart';
 
-import '../Utility.dart';
+import '../Utils/userInfo.dart';
 
 class Appbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -15,27 +16,13 @@ class Appbar extends StatelessWidget implements PreferredSizeWidget {
       this.leading,
       this.bottom});
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      elevation: 2,
-      shadowColor: Colors.black,
-      backgroundColor: Colors.green[900],
       automaticallyImplyLeading: true,
-      title: Row(
-        children: [
-          Image.asset(
-            'assets/images/attendance.png',
-            width: 30,
-          ),
-          SizedBox(width: 10),
-          Text(title),
-        ],
-      ),
-      titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
+      title: Text(title),
       centerTitle: false,
-      iconTheme: Theme.of(context).iconTheme.copyWith(color: Colors.white),
       leading: leading,
       shape: bottom != null
           ? null
@@ -45,22 +32,24 @@ class Appbar extends StatelessWidget implements PreferredSizeWidget {
                 bottomRight: Radius.circular(80),
               ),
             ),
-      actions: [
-        InkWell(
-          child: Image.asset('assets/images/logout.png', width: 30),
-          onTap: () async {
-            await logout().then((onValue) {
-              if (onValue) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => Login()),
-                );
-              }
-            });
-          },
-        ),
-        SizedBox(width: 20),
-      ],
+      actions: !kDebugMode
+          ? []
+          : [
+              InkWell(
+                child: Image.asset('assets/images/logout.png', height: 30),
+                onTap: () async {
+                  await UserInfo.logout().then((onValue) {
+                    if (onValue) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const Login()),
+                      );
+                    }
+                  });
+                },
+              ),
+              const SizedBox(width: 20),
+            ],
       bottom: bottom,
     );
   }

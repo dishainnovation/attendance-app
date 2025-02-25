@@ -1,7 +1,8 @@
 import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:frontend/Models/ShiftModel.dart';
 import 'package:frontend/Models/SiteModel.dart';
-import 'package:frontend/Utility.dart';
+
+import '../Utils/formatter.dart';
 
 class AttendanceModel {
   int id;
@@ -54,7 +55,7 @@ class AttendanceModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id.toString(),
-      'attendance_date': formatDate(attendanceDate),
+      'attendance_date': Formatter.formatDate(attendanceDate),
       'employee_id': employeeId.id,
       'port_id': portId,
       'shift_id': shiftId,

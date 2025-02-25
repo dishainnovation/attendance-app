@@ -1,16 +1,16 @@
 import 'dart:convert';
 import 'package:frontend/Models/Designation.dart';
-import 'package:http/http.dart' as http;
 
-import '../Utility.dart';
+import 'dioClient.dart';
 
-String url = '${baseUrl}designation/';
+String url = 'designation/';
 final uri = Uri.parse(url);
+
+final InterceptedClient client = InterceptedClient();
 
 Future<List<DesignationModel>> getDesignations() async {
   try {
-    final response =
-        await http.get(uri, headers: {"Accept": "application/json"});
+    final response = await client.get(uri);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -28,7 +28,7 @@ Future<List<DesignationModel>> getDesignations() async {
 
 Future<DesignationModel> createDesignation(DesignationModel designation) async {
   try {
-    var request = await http.post(uri, body: designation.toJson());
+    var request = await client.post(uri, body: designation.toJson());
 
     if (request.statusCode == 201) {
       return DesignationModel.fromJson(
@@ -45,7 +45,7 @@ Future<DesignationModel> updateDesignation(
     int id, DesignationModel designation) async {
   try {
     Uri uriPut = Uri.parse('$url?id=$id');
-    var request = await http.put(uriPut, body: designation.toJson());
+    var request = await client.put(uriPut, body: designation.toJson());
 
     if (request.statusCode == 200) {
       Map<String, dynamic> data =
@@ -62,7 +62,7 @@ Future<DesignationModel> updateDesignation(
 Future<String> deleteDesignation(int id) async {
   try {
     Uri uriPut = Uri.parse('$url?id=$id');
-    var request = await http.delete(uriPut);
+    var request = await client.delete(uriPut);
 
     if (request.statusCode == 204) {
       return 'Designation deleted successfuly.';

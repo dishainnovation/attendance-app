@@ -7,7 +7,7 @@ import 'package:mime/mime.dart';
 import '../Models/EmployeeModel.dart';
 import 'package:http_parser/http_parser.dart';
 
-import '../Utility.dart';
+import '../Utils/constants.dart';
 import 'dioClient.dart';
 
 String url = 'employee/';
@@ -17,8 +17,7 @@ final InterceptedClient client = InterceptedClient();
 
 Future<List<EmployeeModel>> getEmployees() async {
   try {
-    final response =
-        await client.get(uri, headers: {"Accept": "application/json"});
+    final response = await client.get(uri);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -158,8 +157,7 @@ String generateEmployeeCode(String prefix, List<EmployeeModel> employees) {
 Future<List<EmployeeModel>> getEmployeesByPort(int portId) async {
   try {
     Uri uriPut = Uri.parse('$url?port_id=$portId');
-    final response =
-        await client.get(uriPut, headers: {"Accept": "application/json"});
+    final response = await client.get(uriPut);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);

@@ -46,5 +46,19 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>processing</string>
+
+			<!-- If you need periodic tasks in iOS 13+ you need to enable Background Fetch as well -->
+			<string>fetch</string>
+		</array>
+		<key>BGTaskSchedulerPermittedIdentifiers</key>
+		<array>
+			<string>task-identifier</string>
+
+			<!-- Register a periodic task in iOS 13+ -->
+			<string>be.tramckrijte.attendance.iOSBackgroundAppRefresh</string>
+		</array>
 	</dict>
 </plist>

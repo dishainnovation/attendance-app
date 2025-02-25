@@ -6,7 +6,7 @@ import 'package:frontend/userHome.dart';
 import 'package:provider/provider.dart';
 
 import 'Services/userNotifier.dart';
-import 'Utility.dart';
+import 'Utils/constants.dart';
 import 'widgets/SpinKit.dart';
 
 class Screen extends StatefulWidget {
@@ -28,21 +28,21 @@ class _ScreenState extends State<Screen> {
   @override
   Widget build(BuildContext context) {
     if (user == null) {
-      return Scaffold(
-          body: Center(
-              child: SpinKit(
+      return const Scaffold(
+          body: const Center(
+              child: const SpinKit(
         type: spinkitType,
       )));
     } else {
       if (user!.designation!.user_type == 'SUPER_ADMIN') {
-        return AdminHome();
+        return const AdminHome();
       } else if (user!.designation!.user_type == 'ADMIN') {
-        return HomePage();
+        return const HomePage();
       } else if (user!.designation!.user_type == 'SUPERVISOR' ||
           user!.designation!.user_type == 'OPERATOR') {
-        return UserHome();
+        return const UserHome();
       }
-      return UserHome();
+      return const UserHome();
     }
   }
 }

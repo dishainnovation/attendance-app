@@ -1,13 +1,12 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/Designation.dart';
 import 'package:frontend/Services/designationService.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 
 import 'Models/ErrorObject.dart';
-import 'Utility.dart';
 import 'widgets/Button.dart';
 import 'widgets/TextField.dart';
+import 'Utils/dialogs.dart';
 import 'widgets/dropdown.dart';
 
 class Designation extends StatefulWidget {
@@ -59,7 +58,7 @@ class _DesignationState extends State<Designation> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Name'),
+                    const Text('Name'),
                     Textfield(
                       label: 'Name',
                       controller: nameController,
@@ -81,9 +80,9 @@ class _DesignationState extends State<Designation> {
                       },
                     ),
                     CheckboxListTile(
-                      title: Text('Remote Checkin'),
-                      subtitle:
-                          Text('Allow remote checkin for this designation'),
+                      title: const Text('Remote Checkin'),
+                      subtitle: const Text(
+                          'Allow remote checkin for this designation'),
                       value: designation.remote_checkin,
                       onChanged: (value) {
                         setState(() {
@@ -95,7 +94,7 @@ class _DesignationState extends State<Designation> {
                 ),
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             Button(
@@ -122,28 +121,28 @@ class _DesignationState extends State<Designation> {
           setState(() {
             isSaving = false;
           });
-          await showMessageDialog(
+          await Dialogs.showMessageDialog(
               context, page, 'Designation saved successfuly.');
           Navigator.pop(context);
         }).catchError((err) {
           setState(() {
             isSaving = false;
           });
-          showMessageDialog(context, page, err.toString());
+          Dialogs.showMessageDialog(context, page, err.toString());
         });
       } else {
         await createDesignation(designation).then((response) async {
           setState(() {
             isSaving = false;
           });
-          await showMessageDialog(
+          await Dialogs.showMessageDialog(
               context, page, 'Designation saved successfuly.');
           Navigator.pop(context);
         }).catchError((err) {
           setState(() {
             isSaving = false;
           });
-          showMessageDialog(context, page, err.toString());
+          Dialogs.showMessageDialog(context, page, err.toString());
         });
       }
     } catch (e) {

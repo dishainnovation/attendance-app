@@ -8,9 +8,11 @@ import 'package:provider/provider.dart';
 import 'Models/ErrorObject.dart';
 import 'Models/PortModel.dart';
 import 'Services/portService.dart';
-import 'Utility.dart';
+import 'Utils/constants.dart';
 import 'widgets/ScaffoldPage.dart';
 import 'widgets/SpinKit.dart';
+import 'Utils/dialogs.dart';
+import 'Utils/formatter.dart';
 import 'widgets/dropdown.dart';
 
 class EmployeesList extends StatefulWidget {
@@ -115,12 +117,12 @@ class _EmployeesListState extends State<EmployeesList> {
             setState(() {});
           });
         },
-        child: Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: SizedBox(
         height: MediaQuery.of(context).size.height - 231,
         child: isLoading
-            ? Center(
+            ? const Center(
                 child: SpinKit(
                 type: spinkitType,
               ))
@@ -130,7 +132,7 @@ class _EmployeesListState extends State<EmployeesList> {
                     itemBuilder: (context, index) {
                       return employeeCard(filteredEmployeesList[index]);
                     })
-                : Center(
+                : const Center(
                     child: Text('No records found.'),
                   ),
       ),
@@ -139,7 +141,7 @@ class _EmployeesListState extends State<EmployeesList> {
 
   PreferredSize filterBar() {
     return PreferredSize(
-      preferredSize: Size.fromHeight(180),
+      preferredSize: const Size.fromHeight(180),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -159,7 +161,7 @@ class _EmployeesListState extends State<EmployeesList> {
                 },
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 5,
             ),
             TextField(
@@ -170,7 +172,7 @@ class _EmployeesListState extends State<EmployeesList> {
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                contentPadding: EdgeInsets.all(8.0),
+                contentPadding: const EdgeInsets.all(8.0),
                 fillColor: Colors.white,
               ),
               onChanged: filterItems,
@@ -193,17 +195,17 @@ class _EmployeesListState extends State<EmployeesList> {
           children: [
             Text(
               employee.designation!.name,
-              style: TextStyle(color: Colors.blueAccent),
+              style: const TextStyle(color: Colors.blueAccent),
             ),
             Text(
               employee.mobileNumber,
-              style: TextStyle(color: Colors.grey),
+              style: const TextStyle(color: Colors.grey),
             ),
           ],
         ),
         trailing: actions(employee),
         children: <Widget>[
-          Divider(
+          const Divider(
             height: 8,
           ),
           Padding(
@@ -216,11 +218,11 @@ class _EmployeesListState extends State<EmployeesList> {
               children: [
                 Text(
                   'Code: ${employee.employeeCode}',
-                  style: TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: Colors.grey),
                 ),
                 Text(
                   'Port: ${employee.portName}',
-                  style: TextStyle(color: Colors.black),
+                  style: const TextStyle(color: Colors.black),
                 ),
               ],
             ),
@@ -229,10 +231,10 @@ class _EmployeesListState extends State<EmployeesList> {
             padding: const EdgeInsets.only(left: 17.0),
             child: Text(
               'Gender: ${employee.gender}',
-              style: TextStyle(color: Colors.grey),
+              style: const TextStyle(color: Colors.grey),
             ),
           ),
-          Divider(
+          const Divider(
             height: 8,
           ),
           Padding(
@@ -245,8 +247,8 @@ class _EmployeesListState extends State<EmployeesList> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Birth : ${displayDate(DateTime.parse(employee.dateOfBirth))}',
-                  style: TextStyle(color: Colors.grey),
+                  'Birth : ${Formatter.displayDate(DateTime.parse(employee.dateOfBirth))}',
+                  style: const TextStyle(color: Colors.grey),
                 ),
                 Container(
                   color: Colors.grey,
@@ -254,8 +256,8 @@ class _EmployeesListState extends State<EmployeesList> {
                   height: 20,
                 ),
                 Text(
-                  'Hire Date: ${displayDate(DateTime.parse(employee.dateOfJoining))}',
-                  style: TextStyle(color: Colors.grey),
+                  'Hire Date: ${Formatter.displayDate(DateTime.parse(employee.dateOfJoining))}',
+                  style: const TextStyle(color: Colors.grey),
                 ),
               ],
             ),
@@ -285,12 +287,12 @@ class _EmployeesListState extends State<EmployeesList> {
                 setState(() {});
               });
             },
-            child: Icon(
+            child: const Icon(
               Icons.edit,
               color: Colors.green,
             ),
           ),
-          SizedBox(width: 10),
+          const SizedBox(width: 10),
           InkWell(
             onTap: () async {
               await showDialog(
@@ -299,20 +301,20 @@ class _EmployeesListState extends State<EmployeesList> {
                     false, // User must tap button to close dialog
                 builder: (BuildContext context) {
                   return AlertDialog(
-                    title: Text('Employee'),
-                    content: SingleChildScrollView(
+                    title: const Text('Employee'),
+                    content: const SingleChildScrollView(
                       child: Text(
                           'Are you sure you want to delete this employee?'),
                     ),
                     actions: <Widget>[
                       TextButton(
-                        child: Text('Approve'),
+                        child: const Text('Approve'),
                         onPressed: () async {
                           Navigator.of(context).pop(true);
                         },
                       ),
                       TextButton(
-                        child: Text('Cancel'),
+                        child: const Text('Cancel'),
                         onPressed: () {
                           Navigator.of(context).pop(false);
                         },
@@ -323,17 +325,19 @@ class _EmployeesListState extends State<EmployeesList> {
               ).then((value) async {
                 if (value) {
                   await deleteEmployee(employee.id).then((result) async {
-                    await showMessageDialog(context, 'Employee', result);
+                    await Dialogs.showMessageDialog(
+                        context, 'Employee', result);
                     getData();
                   }).catchError(
                     (err) {
-                      showMessageDialog(context, 'Employee', err.toString());
+                      Dialogs.showMessageDialog(
+                          context, 'Employee', err.toString());
                     },
                   );
                 }
               });
             },
-            child: Icon(
+            child: const Icon(
               Icons.delete,
               color: Colors.red,
             ),

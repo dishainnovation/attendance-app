@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/terminal.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
@@ -8,8 +7,9 @@ import 'Models/PortModel.dart';
 import 'Models/SiteModel.dart';
 import 'Services/portService.dart';
 import 'Services/terminalService.dart';
-import 'Utility.dart';
+import 'Utils/constants.dart';
 import 'widgets/SpinKit.dart';
+import 'Utils/dialogs.dart';
 import 'widgets/dropdown.dart';
 
 class TerminalsList extends StatefulWidget {
@@ -56,7 +56,7 @@ class _TerminalsListState extends State<TerminalsList> {
       return ScaffoldPage(
         error: error,
         title: 'Terminals List',
-        body: Center(
+        body: const Center(
             child: SpinKit(
           type: spinkitType,
         )),
@@ -79,10 +79,10 @@ class _TerminalsListState extends State<TerminalsList> {
             });
           });
         },
-        child: Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       bottom: PreferredSize(
-          preferredSize: Size.fromHeight(30),
+          preferredSize: const Size.fromHeight(30),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: DropDown(
@@ -105,7 +105,7 @@ class _TerminalsListState extends State<TerminalsList> {
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 if (snapshot.data!.isEmpty) {
-                  return Center(child: Text('No terminals found'));
+                  return const Center(child: Text('No terminals found'));
                 }
                 return SizedBox(
                   height: MediaQuery.of(context).size.height * 0.78,
@@ -118,7 +118,7 @@ class _TerminalsListState extends State<TerminalsList> {
               } else if (snapshot.hasError) {
                 return Text('Error: ${snapshot.error}');
               } else {
-                return Center(
+                return const Center(
                   child: Text('Select Port'),
                 );
               }
@@ -132,20 +132,20 @@ class _TerminalsListState extends State<TerminalsList> {
       color: Colors.white,
       child: ListTile(
         isThreeLine: true,
-        contentPadding: EdgeInsets.all(10),
+        contentPadding: const EdgeInsets.all(10),
         title: Text(
           site.name,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         subtitle: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Geo Coordinates:',
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
-            Divider(
+            const Divider(
               thickness: 1,
               height: 5,
             ),
@@ -155,13 +155,13 @@ class _TerminalsListState extends State<TerminalsList> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Latitude',
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                     Text(
                       '${site.latitude}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -173,13 +173,13 @@ class _TerminalsListState extends State<TerminalsList> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Longitude',
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                     Text(
                       '${site.longitude}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -205,14 +205,14 @@ class _TerminalsListState extends State<TerminalsList> {
                     });
                   });
                 },
-                child: Icon(
+                child: const Icon(
                   Icons.edit,
                   color: Colors.green,
                 ),
               ),
               InkWell(
                 onTap: () => delete(site),
-                child: Icon(
+                child: const Icon(
                   Icons.delete,
                   color: Colors.red,
                 ),
@@ -230,13 +230,13 @@ class _TerminalsListState extends State<TerminalsList> {
       barrierDismissible: false, // User must tap button to close dialog
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Terminal'),
-          content: SingleChildScrollView(
+          title: const Text('Terminal'),
+          content: const SingleChildScrollView(
             child: Text('Are you sure you want to delete this terminal?'),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Approve'),
+              child: const Text('Approve'),
               onPressed: () async {
                 await deleteSite(site.id).then((result) async {
                   setState(() {
@@ -245,13 +245,14 @@ class _TerminalsListState extends State<TerminalsList> {
                   Navigator.of(context).pop();
                 }).catchError(
                   (err) {
-                    showMessageDialog(context, 'Terminal', err.toString());
+                    Dialogs.showMessageDialog(
+                        context, 'Terminal', err.toString());
                   },
                 );
               },
             ),
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },

@@ -7,10 +7,10 @@ import 'package:frontend/widgets/loading.dart';
 import 'Models/ErrorObject.dart';
 import 'Models/PortModel.dart';
 import 'Services/portService.dart';
-import 'Utility.dart';
 import 'widgets/Button.dart';
 import 'widgets/ScaffoldPage.dart';
 import 'widgets/TextField.dart';
+import 'Utils/dialogs.dart';
 
 class Terminal extends StatefulWidget {
   final SiteModel? site;
@@ -95,7 +95,7 @@ class _TerminalState extends State<Terminal> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Card(
             color: Colors.white,
             child: Padding(
@@ -103,7 +103,7 @@ class _TerminalState extends State<Terminal> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Name'),
+                  const Text('Name'),
                   Textfield(
                     label: 'Name',
                     controller: nameController,
@@ -114,7 +114,7 @@ class _TerminalState extends State<Terminal> {
                       return null;
                     },
                   ),
-                  Text('Latitude'),
+                  const Text('Latitude'),
                   Textfield(
                     label: 'Latitude',
                     controller: latitudeController,
@@ -126,7 +126,7 @@ class _TerminalState extends State<Terminal> {
                       return null;
                     },
                   ),
-                  Text('Longitude'),
+                  const Text('Longitude'),
                   Textfield(
                     label: 'Longitude',
                     controller: longitudeController,
@@ -138,7 +138,7 @@ class _TerminalState extends State<Terminal> {
                       return null;
                     },
                   ),
-                  Text('Geofencing Area (in meters)'),
+                  const Text('Geofencing Area (in meters)'),
                   Textfield(
                     label: 'Geofencing Area (in meters)',
                     controller: geoFenceController,
@@ -150,7 +150,7 @@ class _TerminalState extends State<Terminal> {
                       return null;
                     },
                   ),
-                  Text('Port'),
+                  const Text('Port'),
                   ports.isNotEmpty
                       ? DropDown(
                           items: ports.map((port) => port.name).toList(),
@@ -174,7 +174,7 @@ class _TerminalState extends State<Terminal> {
               ),
             ),
           ),
-          SizedBox(
+          const SizedBox(
             height: 20,
           ),
           Button(
@@ -205,23 +205,25 @@ class _TerminalState extends State<Terminal> {
           setState(() {
             _isSaving = false;
           });
-          await showMessageDialog(context, page, 'Terminal saved successfuly.');
+          await Dialogs.showMessageDialog(
+              context, page, 'Terminal saved successfuly.');
           Navigator.pop(context);
         }).catchError((err) {
-          showMessageDialog(context, page, err.toString());
+          Dialogs.showMessageDialog(context, page, err.toString());
         });
       } else {
         await updateSite(site.id, site).then((response) async {
           setState(() {
             _isSaving = false;
           });
-          await showMessageDialog(context, page, 'Terminal saved successfuly.');
+          await Dialogs.showMessageDialog(
+              context, page, 'Terminal saved successfuly.');
           Navigator.pop(context);
         }).catchError((err) {
           setState(() {
             _isSaving = false;
           });
-          showMessageDialog(context, page, err.toString());
+          Dialogs.showMessageDialog(context, page, err.toString());
         });
       }
     } catch (e) {

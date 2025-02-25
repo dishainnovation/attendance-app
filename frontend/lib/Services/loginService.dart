@@ -1,17 +1,17 @@
 import 'dart:convert';
-import 'package:frontend/Utility.dart';
 import 'package:http/http.dart' as http;
 
 import '../Models/EmployeeModel.dart';
+import 'dioClient.dart';
 
 // String url = "${dotenv.env['API_URL']}login/";
-String url = '${baseUrl}login/';
+String url = 'login/';
+final InterceptedClient client = InterceptedClient();
 
 Future<EmployeeModel> login(String userId, String password) async {
   try {
     final uri = Uri.parse('$url?employee_code=$userId&password=$password');
-    final response =
-        await http.get(uri, headers: {"Accept": "application/json"});
+    final response = await client.get(uri);
 
     if (response.statusCode == 200) {
       Map<String, dynamic> data =

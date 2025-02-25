@@ -13,10 +13,13 @@ import 'Models/PortModel.dart';
 import 'Services/designationService.dart';
 import 'Services/employeeService.dart';
 import 'Services/portService.dart';
-import 'Utility.dart';
+import 'Utils/constants.dart';
+import 'Utils/userInfo.dart';
 import 'widgets/SpinKit.dart';
 import 'widgets/TakePicture.dart';
 import 'widgets/TextField.dart';
+import 'Utils/dialogs.dart';
+import 'Utils/formatter.dart';
 import 'widgets/dropdown.dart';
 import 'widgets/loading.dart';
 
@@ -48,8 +51,8 @@ class _EmployeeState extends State<Employee> {
       gender: 'Male',
       password: '',
       designation: null,
-      dateOfBirth: formatDate(DateTime.now()),
-      dateOfJoining: formatDate(DateTime.now()),
+      dateOfBirth: Formatter.formatDate(DateTime.now()),
+      dateOfJoining: Formatter.formatDate(DateTime.now()),
       port: 0,
       portName: '');
 
@@ -76,11 +79,6 @@ class _EmployeeState extends State<Employee> {
     await getDesignations().then((designations) {
       setState(() {
         this.designations = designations;
-        // setState(() {
-        //   DesignationModel designation =
-        //       getDesignationByName(designations[0].name, designations);
-        //   // employee.designation = designation;
-        // });
       });
     }).catchError((e) {
       error = ErrorObject(title: 'Error', message: e.toString());
@@ -137,7 +135,7 @@ class _EmployeeState extends State<Employee> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Card(
                 color: Colors.white,
                 child: Padding(
@@ -145,11 +143,11 @@ class _EmployeeState extends State<Employee> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Name'),
+                      const Text('Name'),
                       Textfield(
                         label: 'Name',
                         controller: nameController,
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                         onFieldSubmitted: (value) {
                           setState(() {
                             employee.name = value;
@@ -162,7 +160,7 @@ class _EmployeeState extends State<Employee> {
                           return null;
                         },
                       ),
-                      Text('Port'),
+                      const Text('Port'),
                       user.designation?.user_type != 'SUPER_ADMIN'
                           ? Textfield(
                               label: 'Port',
@@ -202,7 +200,7 @@ class _EmployeeState extends State<Employee> {
                                   width: double.infinity,
                                   color: Colors.grey[350],
                                 ),
-                      Text('Code'),
+                      const Text('Code'),
                       Textfield(
                         label: 'Code',
                         readOnly: true,
@@ -219,7 +217,7 @@ class _EmployeeState extends State<Employee> {
                           return null;
                         },
                       ),
-                      Text('Password'),
+                      const Text('Password'),
                       Textfield(
                         label: 'Password',
                         obscureText: true,
@@ -242,7 +240,7 @@ class _EmployeeState extends State<Employee> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Gender'),
+                              const Text('Gender'),
                               SizedBox(
                                 width: screenSize.width * 0.3,
                                 child: DropDown(
@@ -261,7 +259,7 @@ class _EmployeeState extends State<Employee> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Mobile Number'),
+                              const Text('Mobile Number'),
                               Textfield(
                                 label: 'Mobile Number',
                                 width: screenSize.width * 0.4,
@@ -290,7 +288,7 @@ class _EmployeeState extends State<Employee> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Date of Birth'),
+                                const Text('Date of Birth'),
                                 Textfield(
                                   label: 'Date of Birth',
                                   readOnly: true,
@@ -310,10 +308,11 @@ class _EmployeeState extends State<Employee> {
                                     return null;
                                   },
                                   onTap: () async {
-                                    await selectDate(context).then((value) {
+                                    await Dialogs.selectDate(context)
+                                        .then((value) {
                                       setState(() {
                                         employee.dateOfBirth =
-                                            formatDate(value);
+                                            Formatter.formatDate(value);
                                       });
                                     });
                                   },
@@ -323,7 +322,7 @@ class _EmployeeState extends State<Employee> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Hire Date'),
+                                const Text('Hire Date'),
                                 Textfield(
                                   label: 'Hire Date',
                                   readOnly: true,
@@ -343,10 +342,11 @@ class _EmployeeState extends State<Employee> {
                                     return null;
                                   },
                                   onTap: () async {
-                                    await selectDate(context).then((value) {
+                                    await Dialogs.selectDate(context)
+                                        .then((value) {
                                       setState(() {
                                         employee.dateOfJoining =
-                                            formatDate(value);
+                                            Formatter.formatDate(value);
                                       });
                                     });
                                   },
@@ -356,7 +356,7 @@ class _EmployeeState extends State<Employee> {
                           ],
                         ),
                       ),
-                      Text('Designation'),
+                      const Text('Designation'),
                       designations.isNotEmpty
                           ? DropDown(
                               enabled: user.designation!.user_type ==
@@ -383,13 +383,13 @@ class _EmployeeState extends State<Employee> {
                               width: double.infinity,
                               color: Colors.grey[350],
                             ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       imageCard(employee),
                     ],
                   ),
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               Button(label: 'Save', color: Colors.green, onPressed: save),
@@ -416,7 +416,7 @@ class _EmployeeState extends State<Employee> {
                 borderRadius: BorderRadius.circular(7),
               ),
               child: employee.employeePhoto == null
-                  ? Icon(
+                  ? const Icon(
                       Icons.image,
                       size: 200,
                       color: Colors.grey,
@@ -431,14 +431,14 @@ class _EmployeeState extends State<Employee> {
                             if (event == null) {
                               return child;
                             }
-                            return Center(
-                              child: SpinKit(
+                            return const Center(
+                              child: const SpinKit(
                                 type: spinkitType,
                               ),
                             );
                           },
                           errorBuilder: (context, error, stackTrace) {
-                            return Icon(
+                            return const Icon(
                               Icons.image,
                               size: 200,
                               color: Colors.grey,
@@ -452,7 +452,7 @@ class _EmployeeState extends State<Employee> {
                           fit: BoxFit.cover,
                         ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 10,
             ),
             Center(
@@ -494,7 +494,7 @@ class _EmployeeState extends State<Employee> {
       return;
     }
     if (employee.employeePhoto == null) {
-      showSnackBar(context, 'Employee', 'Please take a selfie.');
+      Dialogs.showSnackBar(context, 'Employee', 'Please take a selfie.');
       return;
     }
     setState(() {
@@ -506,13 +506,18 @@ class _EmployeeState extends State<Employee> {
           setState(() {
             _isSaving = false;
           });
-          showSnackBar(context, 'Employee', 'Employee saved successfuly.');
+          Dialogs.showSnackBar(
+              context, 'Employee', 'Employee saved successfuly.');
+          if (employee.id == user!.id) {
+            context.read<User>().user = employee;
+            UserInfo.storeUserInfo(user!);
+          }
           Navigator.pop(context);
         }).catchError((err) {
           setState(() {
             _isSaving = false;
           });
-          showSnackBar(context, 'Employee', err.toString());
+          Dialogs.showSnackBar(context, 'Employee', err.toString());
         });
       } else {
         await updateEmployee(employee.id, employee, employee.employeePhoto!)
@@ -520,13 +525,18 @@ class _EmployeeState extends State<Employee> {
           setState(() {
             _isSaving = false;
           });
-          showSnackBar(context, 'Employee', 'Employee updated successfuly.');
+          Dialogs.showSnackBar(
+              context, 'Employee', 'Employee updated successfuly.');
+          if (employee.id == user!.id) {
+            context.read<User>().user = employee;
+            UserInfo.storeUserInfo(user!);
+          }
           Navigator.pop(context);
         }).catchError((err) {
           setState(() {
             _isSaving = false;
           });
-          showSnackBar(context, 'Employee', err.toString());
+          Dialogs.showSnackBar(context, 'Employee', err.toString());
         });
       }
     } catch (e) {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../Utility.dart';
+import '../Utils/constants.dart';
 import 'SpinKit.dart';
 
 class LoadingWidget extends StatelessWidget {

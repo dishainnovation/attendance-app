@@ -24,7 +24,6 @@ def attendance_list(request):
             for att in attendance_records:
                 attendance_data.append(attendance_object(att))
                 
-            print(attendance_data)
             return JsonResponse(attendance_data, safe=False)
 
         serializer = AttendanceSerializer(ports, many=True)
@@ -34,7 +33,6 @@ def attendance_list(request):
         try:
             employee_id = request.data['employee_id']
             employee = Employee.objects.get(id=employee_id)
-            print(employee_id)
             user_image = request.FILES.get('user_photo')
             match = compare(user_image, employee.profile_image)
 
@@ -46,8 +44,8 @@ def attendance_list(request):
                     shift = Shift.objects.get(id=request.data['shift_id']),
                     check_in_time = request.data['check_in_time'],
                     check_out_time = None,
-                    latitude = request.data['latitude'],
-                    longitude = request.data['longitude'],
+                    check_in_latitude = request.data['latitude'],
+                    check_in_longitude = request.data['longitude'],
                     check_in_photo = user_image,
                     check_out_photo = None,
                     attendance_type = request.data['attendance_type']
@@ -69,6 +67,20 @@ def attendance_list(request):
         employee_id = request.data['employee_id']
         employee = Employee.objects.get(id=employee_id)
         user_image = request.FILES.get('user_photo')
+        if user_image is None:
+            attendance.attendance_date = request.data['attendance_date']
+            attendance.employee = employee
+            attendance.port = Port.objects.get(id = request.data['port_id'])
+            attendance.shift = Shift.objects.get(id=request.data['shift_id'])
+            attendance.check_out_time = request.data['check_in_time']
+            attendance.check_out_latitude = request.data['latitude']
+            attendance.check_out_longitude = request.data['longitude']
+            # attendance.check_out_photo = user_image
+            attendance.attendance_type = request.data['attendance_type']
+
+            attendance.save()
+            return Response(status=status.HTTP_201_CREATED)
+        
         match = compare(user_image, employee.profile_image)
 
         if match['match']:
@@ -77,8 +89,8 @@ def attendance_list(request):
             attendance.port = Port.objects.get(id = request.data['port_id'])
             attendance.shift = Shift.objects.get(id=request.data['shift_id'])
             attendance.check_out_time = request.data['check_in_time']
-            attendance.latitude = request.data['latitude']
-            attendance.longitude = request.data['longitude']
+            attendance.check_out_latitude = request.data['latitude']
+            attendance.check_out_longitude = request.data['longitude']
             attendance.check_out_photo = user_image
             attendance.attendance_type = request.data['attendance_type']
 
@@ -156,8 +168,10 @@ def attendance_object(attendance):
         'shift': attendance.shift.id,
         'check_in_time': attendance.check_in_time,
         'check_out_time': attendance.check_out_time,
-        'latitude': attendance.latitude,
-        'longitude': attendance.longitude,
+        'check_in_latitude': attendance.check_in_latitude,
+        'check_in_longitude': attendance.check_in_longitude,
+        'check_out_latitude': attendance.check_out_latitude,
+        'check_out_longitude': attendance.check_out_longitude,
         'check_in_photo': attendance.check_in_photo.url,
         'check_out_photo': check_out_photo,
         'attendance_type': attendance.attendance_type,

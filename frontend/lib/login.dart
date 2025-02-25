@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:frontend/Services/userNotifier.dart';
+import 'package:frontend/Utils/userInfo.dart';
 import 'package:frontend/screen.dart';
 import 'package:provider/provider.dart';
 
-import 'Utility.dart';
-import 'register.dart';
 import 'widgets/Button.dart';
 import 'widgets/TextField.dart';
 import 'Services/loginService.dart';
+import 'Utils/dialogs.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -24,11 +24,11 @@ class _LoginState extends State<Login> {
 
   onLogin(BuildContext context) async {
     if (userIdController.text.isEmpty) {
-      showMessageDialog(context, 'Login', 'Please enter user id.');
+      Dialogs.showMessageDialog(context, 'Login', 'Please enter user id.');
       return false;
     }
     if (passwordController.text.isEmpty) {
-      showMessageDialog(context, 'Login', 'Please enter password.');
+      Dialogs.showMessageDialog(context, 'Login', 'Please enter password.');
       return false;
     }
 
@@ -36,10 +36,10 @@ class _LoginState extends State<Login> {
       final user = await login(userIdController.text, passwordController.text);
 
       context.read<User>().user = EmployeeModel.fromJson(user.toJson());
-      storeUserInfo(user);
+      UserInfo.storeUserInfo(user);
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => Screen()),
+        MaterialPageRoute(builder: (context) => const Screen()),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -63,7 +63,7 @@ class _LoginState extends State<Login> {
                 Container(
                   height: MediaQuery.of(context).size.height * 0.7,
                   width: MediaQuery.of(context).size.width,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                       image: DecorationImage(
                     fit: BoxFit.fill,
                     image: AssetImage('assets/images/loginback.png'),
@@ -75,18 +75,13 @@ class _LoginState extends State<Login> {
                         padding: const EdgeInsets.all(10.0),
                         child: Column(
                           children: [
-                            SizedBox(height: 20),
-                            Image.asset(
-                              'assets/images/attendance.png',
-                              width: 100,
-                            ),
-                            SizedBox(height: 20),
-                            Text('Login',
+                            const SizedBox(height: 40),
+                            const Text('Login',
                                 style: TextStyle(
                                     fontSize: 30,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white)),
-                            SizedBox(height: 40),
+                            const SizedBox(height: 60),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -100,10 +95,10 @@ class _LoginState extends State<Login> {
                                     controller: passwordController,
                                     width: 250,
                                     obscureText: true),
-                                SizedBox(
+                                const SizedBox(
                                   height: 10,
                                 ),
-                                SizedBox(
+                                const SizedBox(
                                   height: 30,
                                 ),
                                 Button(
@@ -123,29 +118,33 @@ class _LoginState extends State<Login> {
                     ],
                   ),
                 ),
-                SizedBox(
-                  height: 60,
+                const SizedBox(
+                  height: 40,
                 ),
-                Text('Not registered yet?',
-                    style: TextStyle(color: Colors.grey)),
-                SizedBox(
-                  height: 30,
+                Image.asset(
+                  'assets/images/attendance.png',
+                  width: 150,
                 ),
-                Button(
-                  color: Colors.green,
-                  label: 'Register Now',
-                  width: 170,
-                  borderRadius: 30,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => RegisterPage(
-                                isProfile: false,
-                              )),
-                    );
-                  },
-                ),
+                // Text('Not registered yet?',
+                //     style: TextStyle(color: Colors.grey)),
+                // SizedBox(
+                //   height: 30,
+                // ),
+                // Button(
+                //   color: Colors.green,
+                //   label: 'Register Now',
+                //   width: 170,
+                //   borderRadius: 30,
+                //   onPressed: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //           builder: (context) => RegisterPage(
+                //                 isProfile: false,
+                //               )),
+                //     );
+                //   },
+                // ),
               ],
             ),
           ),

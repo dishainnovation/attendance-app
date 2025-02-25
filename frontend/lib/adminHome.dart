@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/AttendanceModel.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
@@ -9,14 +6,12 @@ import 'package:frontend/Services/attendanceService.dart';
 import 'package:frontend/Services/userNotifier.dart';
 import 'package:frontend/widgets/SpinKit.dart';
 import 'package:provider/provider.dart';
-import 'Services/employeeService.dart';
 import 'Services/navigationService.dart';
 import 'package:frontend/widgets/ScaffoldPage.dart';
 import 'package:frontend/widgets/tile.dart';
 
-import 'Utility.dart';
+import 'Utils/formatter.dart';
 import 'widgets/Button.dart';
-import 'widgets/TakePicture.dart';
 
 class AdminHome extends StatefulWidget {
   const AdminHome({super.key});
@@ -27,82 +22,35 @@ class AdminHome extends StatefulWidget {
 
 class _AdminHomeState extends State<AdminHome> {
   ErrorObject error = ErrorObject(title: '', message: '');
-  double cardSize = 100;
   List<Widget> functionTiles = [];
   List<Widget> reportsTiles = [];
   EmployeeModel? employee;
-  CurrentAttendance? attendance;
-  double? latitude;
-  double? longitude;
-  String locationName = '';
-  bool isProfileCompleted = false;
+  AttendanceModel? attendance;
   bool isLoading = false;
   bool fetchingAttendance = false;
 
-  getUser() {
-    try {
-      setState(() {
-        employee = context.read<User>().user!;
-      });
-    } catch (e) {
-      setState(() {
-        error = ErrorObject(title: 'Error', message: e.toString());
-      });
-    }
-  }
-
-  getLocation() async {
-    setState(() {
-      fetchingAttendance = true;
+  Future<AttendanceModel?> getAttendance() async {
+    AttendanceModel? tempAttendance;
+    EmployeeModel user = context.read<User>().user!;
+    await getEmployeeAttendance(user.id, Formatter.formatDate(DateTime.now()))
+        .then((attendances) {
+      if (attendances.isNotEmpty) {
+        tempAttendance =
+            attendances.firstWhere((att) => att.checkOutTime == null);
+      }
     });
-    try {
-      await getCurrentLocation().then((location) async {
-        await getCurrentAttendance(
-                employee!, location.latitude, location.longitude)
-            .then((att) {
-          setState(() {
-            attendance = att;
-            fetchingAttendance = false;
-          });
-        });
-        setState(() {
-          latitude = location.latitude;
-          longitude = location.longitude;
-        });
-        await getLocationName(location).then((value) => setState(() {
-              locationName = value;
-            }));
-      }).catchError((err) {
-        setState(() {
-          fetchingAttendance = false;
-        });
-        throw Exception(err);
-      });
-    } catch (e) {
-      setState(() {
-        fetchingAttendance = false;
-      });
-    }
-  }
 
-  checkProfile() {
-    if (employee!.profileImage == null) {
-      setState(() {
-        isProfileCompleted = false;
-      });
-    } else {
-      setState(() {
-        isProfileCompleted = true;
-      });
-    }
+    setState(() {
+      attendance = tempAttendance;
+    });
+    return tempAttendance;
   }
 
   @override
   void initState() {
     super.initState();
-    getUser();
-    getLocation();
-    checkProfile();
+    employee = context.read<User>().user!;
+    getAttendance();
   }
 
   @override
@@ -116,15 +64,23 @@ class _AdminHomeState extends State<AdminHome> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           employee == null ? Container() : employeeInfo(context),
-          Divider(height: 20),
+          const Divider(
+            height: 40,
+          ),
           Flexible(
-            flex: 3,
+            flex: 4,
             fit: FlexFit.tight,
             child: functionGrid(),
           ),
-          Divider(),
-          Text('Reports'),
-          SizedBox(height: 20),
+          const Divider(),
+          const Text(
+            'Reports',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 20),
           Flexible(
             flex: 2,
             child: reportsGrid(),
@@ -147,7 +103,7 @@ class _AdminHomeState extends State<AdminHome> {
                   colors: [Colors.green[900]!, Colors.green],
                 ),
               ),
-              child: Text(
+              child: const Text(
                 'Attendance Tracker',
                 style: TextStyle(
                   color: Colors.white,
@@ -158,7 +114,7 @@ class _AdminHomeState extends State<AdminHome> {
           ),
           ListTile(
             title: const Text('Designations'),
-            leading: Icon(
+            leading: const Icon(
               Icons.approval,
             ),
             onTap: () {
@@ -175,11 +131,20 @@ class _AdminHomeState extends State<AdminHome> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Welcome ${employee!.name}',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        RichText(
+          text: TextSpan(
+              text: 'Welcome ',
+              style: Theme.of(context).textTheme.headlineSmall,
+              children: [
+                TextSpan(
+                  text: employee!.name,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Theme.of(context).primaryColor,
+                      fontWeight: FontWeight.bold),
+                ),
+              ]),
         ),
-        SizedBox(
+        const SizedBox(
           height: 5,
         ),
         Row(
@@ -190,39 +155,38 @@ class _AdminHomeState extends State<AdminHome> {
               children: [
                 Text(
                   'Designation:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                  ),
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 Text(
                   employee!.designation!.name.toString(),
-                  style: TextStyle(
-                    fontWeight: FontWeight.normal,
-                    color: Colors.grey,
-                  ),
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        // color: Theme.of(context).,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ],
             ),
             fetchingAttendance
-                ? Padding(
-                    padding: const EdgeInsets.only(right: 20.0),
+                ? const Padding(
+                    padding: EdgeInsets.only(right: 20.0),
                     child: SpinKit(
                       type: SpinType.Circle,
                       size: 40,
                     ),
                   )
-                : attendance != null
-                    ? Button(
-                        label: attendance!.status == AttendanceStatus.CHECKED_IN
+                : Button(
+                    label:
+                        attendance != null && attendance!.checkOutTime == null
                             ? 'Check Out'
                             : 'Check In',
-                        color: Colors.blue,
-                        onPressed: () {
-                          NavigationService.navigateTo('/check-in');
-                        },
-                      )
-                    : Container(),
+                    color:
+                        attendance != null && attendance!.checkOutTime == null
+                            ? Colors.red
+                            : Theme.of(context).primaryColor,
+                    onPressed: () {
+                      NavigationService.navigateTo('/check-in');
+                    },
+                  ),
           ],
         ),
       ],
@@ -231,7 +195,7 @@ class _AdminHomeState extends State<AdminHome> {
 
   Widget functionGrid() {
     return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 10.0,
         mainAxisSpacing: 10.0,
@@ -257,7 +221,7 @@ class _AdminHomeState extends State<AdminHome> {
       Tile(
         text: 'Employees',
         color: Colors.teal,
-        icon: Icon(
+        icon: const Icon(
           Icons.groups,
           size: 50,
           color: Colors.white,
@@ -268,7 +232,7 @@ class _AdminHomeState extends State<AdminHome> {
       Tile(
         text: 'Ports',
         color: Colors.lightBlue,
-        icon: Icon(
+        icon: const Icon(
           Icons.directions_boat,
           size: 50,
           color: Colors.white,
@@ -279,7 +243,7 @@ class _AdminHomeState extends State<AdminHome> {
       Tile(
         text: 'Terminals',
         color: Colors.deepOrange,
-        icon: Icon(
+        icon: const Icon(
           Icons.account_tree_outlined,
           size: 50,
           color: Colors.white,
@@ -290,7 +254,7 @@ class _AdminHomeState extends State<AdminHome> {
       Tile(
         text: 'Shifts',
         color: Colors.purple,
-        icon: Icon(
+        icon: const Icon(
           Icons.pending_actions,
           size: 50,
           color: Colors.white,
@@ -304,8 +268,8 @@ class _AdminHomeState extends State<AdminHome> {
         elevation: 0,
         color: Colors.white,
         child: ListTile(
-          title: Text('Attendance'),
-          subtitle: Text(
+          title: const Text('Attendance'),
+          subtitle: const Text(
             'Monthly Report',
             style: TextStyle(color: Colors.grey),
           ),
@@ -314,7 +278,7 @@ class _AdminHomeState extends State<AdminHome> {
             size: 40,
             color: Colors.cyan[300],
           ),
-          trailing: Icon(
+          trailing: const Icon(
             Icons.arrow_circle_right,
             color: Colors.grey,
           ),
@@ -323,7 +287,7 @@ class _AdminHomeState extends State<AdminHome> {
           },
         ),
       ),
-      Card(
+      const Card(
         elevation: 0,
         color: Colors.white,
         child: ListTile(
@@ -344,69 +308,5 @@ class _AdminHomeState extends State<AdminHome> {
         ),
       ),
     ];
-  }
-
-  Widget completeProfile(BuildContext context) {
-    return isLoading
-        ? SpinKit(
-            type: SpinType.PouringHourGlassRefined,
-            size: 40,
-          )
-        : SizedBox(
-            width: MediaQuery.of(context).size.width * 0.5,
-            child: Column(
-              children: [
-                Text(
-                  'Please update your profile photo before check-in/check-out.',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
-                  ),
-                ),
-                Button(
-                  label: 'Capture Photo',
-                  color: Colors.blue,
-                  width: MediaQuery.of(context).size.width * 0.5,
-                  onPressed: () async {
-                    setState(() {
-                      isLoading = true;
-                    });
-                    final cameras = await availableCameras();
-                    final preferedtCamera = cameras[1];
-                    Navigator.of(context)
-                        .push(MaterialPageRoute(
-                            builder: (context) =>
-                                TakePictureScreen(camera: preferedtCamera)))
-                        .then((value) async {
-                      if (value != null) {
-                        employee!.profileImage = value.toString();
-                        employee!.employeePhoto = File(value.toString());
-                        await updateEmployee(employee!.id, employee!,
-                                employee!.employeePhoto!)
-                            .then((value) async {
-                          context.read<User>().user =
-                              EmployeeModel.fromJson(employee!.toJson());
-                          storeUserInfo(employee!);
-                          await getLocation();
-                          setState(() {
-                            employee = context.read<User>().user!;
-                            isProfileCompleted = true;
-                            isLoading = false;
-                          });
-                        }).catchError((err) {
-                          showSnackBar(context, 'Employee', err.toString());
-                        });
-                      } else {
-                        setState(() {
-                          isLoading = false;
-                        });
-                      }
-                    });
-                  },
-                ),
-              ],
-            ),
-          );
   }
 }

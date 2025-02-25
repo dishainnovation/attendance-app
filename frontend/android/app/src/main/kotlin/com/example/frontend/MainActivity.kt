@@ -1,4 +1,4 @@
-package com.example.frontend
+package com.symfricon.attendance
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -3,15 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:frontend/Models/ShiftModel.dart';
 
-import '../Utility.dart';
+import 'dioClient.dart';
 
-String url = '${baseUrl}shift/';
+String url = 'shift/';
 Uri uri = Uri.parse(url);
+
+final InterceptedClient client = InterceptedClient();
 
 Future<List<ShiftModel>> getShift() async {
   try {
-    final response =
-        await http.get(uri, headers: {"Accept": "application/json"});
+    final response = await client.get(uri);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -30,7 +31,7 @@ Future<List<ShiftModel>> getShift() async {
 Future<ShiftModel> createShift(ShiftModel shift) async {
   try {
     shift.toJson();
-    var request = await http.post(uri, body: shift.toJson());
+    var request = await client.post(uri, body: shift.toJson());
 
     if (request.statusCode == 201) {
       return ShiftModel.fromJson(
@@ -46,7 +47,7 @@ Future<ShiftModel> createShift(ShiftModel shift) async {
 Future<ShiftModel> updateShift(int id, ShiftModel shift) async {
   try {
     Uri uriPut = Uri.parse('$url$id/');
-    var request = await http.put(uriPut, body: shift.toJson());
+    var request = await client.put(uriPut, body: shift.toJson());
 
     if (request.statusCode == 200) {
       Map<String, dynamic> data =
@@ -63,7 +64,7 @@ Future<ShiftModel> updateShift(int id, ShiftModel shift) async {
 Future<String> deleteShift(int id) async {
   try {
     Uri uriPut = Uri.parse('$url$id/');
-    var request = await http.delete(uriPut);
+    var request = await client.delete(uriPut);
 
     if (request.statusCode == 204) {
       return 'Shift deleted successfuly.';
@@ -84,8 +85,7 @@ ShiftModel getShiftByName(String name, List<ShiftModel> shifts) {
 Future<List<ShiftModel>> getShiftById(int id) async {
   try {
     uri = Uri.parse('$url?id=$id');
-    final response =
-        await http.get(uri, headers: {"Accept": "application/json"});
+    final response = await client.get(uri);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -104,8 +104,7 @@ Future<List<ShiftModel>> getShiftById(int id) async {
 Future<List<ShiftModel>> getShiftsByPort(int portId) async {
   try {
     uri = Uri.parse('$url?port_id=$portId');
-    final response =
-        await http.get(uri, headers: {"Accept": "application/json"});
+    final response = await client.get(uri);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
