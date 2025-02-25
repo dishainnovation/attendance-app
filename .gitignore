@@ -1,5 +1,5 @@
 /backend/attendance_tracker/app/__pycache__/
-/backend/attendance_tracker/profile_images/*.jpg
+backend/attendance_tracker/profile_images/*.jpg
 /frontend/linux
 
 # Flutter/Dart related
