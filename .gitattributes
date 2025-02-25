@@ -1,6 +1,6 @@
 /backend/attendance_tracker/app/__pycache__/
 /frontend/linux
-backend/attendance_tracker/profile_images/*.jpg
+/backend/attendance_tracker/profile_images/*.jpg
 
 # Flutter/Dart related
 .dart_tool/
