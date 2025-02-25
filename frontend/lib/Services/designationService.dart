@@ -1,11 +1,9 @@
 import 'dart:convert';
 import 'package:frontend/Models/Designation.dart';
-
 import 'dioClient.dart';
 
-String url = 'designation/';
-final uri = Uri.parse(url);
-
+final String url = 'designation/';
+final Uri uri = Uri.parse(url);
 final InterceptedClient client = InterceptedClient();
 
 Future<List<DesignationModel>> getDesignations() async {
@@ -14,10 +12,7 @@ Future<List<DesignationModel>> getDesignations() async {
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
-      List<DesignationModel> designations = data.map((des) {
-        return DesignationModel.fromJson(des as Map<String, dynamic>);
-      }).toList();
-      return designations;
+      return data.map((des) => DesignationModel.fromJson(des)).toList();
     } else {
       throw Exception('Failed to load designations: ${response.reasonPhrase}');
     }
@@ -28,13 +23,12 @@ Future<List<DesignationModel>> getDesignations() async {
 
 Future<DesignationModel> createDesignation(DesignationModel designation) async {
   try {
-    var request = await client.post(uri, body: designation.toJson());
+    final response = await client.post(uri, body: designation.toJson());
 
-    if (request.statusCode == 201) {
-      return DesignationModel.fromJson(
-          jsonDecode(request.body) as Map<String, dynamic>);
+    if (response.statusCode == 201) {
+      return DesignationModel.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to save designation: ${request.reasonPhrase}');
+      throw Exception('Failed to save designation: ${response.reasonPhrase}');
     }
   } catch (e) {
     throw Exception('Error occurred: $e');
@@ -44,15 +38,13 @@ Future<DesignationModel> createDesignation(DesignationModel designation) async {
 Future<DesignationModel> updateDesignation(
     int id, DesignationModel designation) async {
   try {
-    Uri uriPut = Uri.parse('$url?id=$id');
-    var request = await client.put(uriPut, body: designation.toJson());
+    final Uri uriPut = Uri.parse('$url?id=$id');
+    final response = await client.put(uriPut, body: designation.toJson());
 
-    if (request.statusCode == 200) {
-      Map<String, dynamic> data =
-          jsonDecode(request.body) as Map<String, dynamic>;
-      return DesignationModel.fromJson(data);
+    if (response.statusCode == 200) {
+      return DesignationModel.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to save designation: ${request.reasonPhrase}');
+      throw Exception('Failed to save designation: ${response.reasonPhrase}');
     }
   } catch (e) {
     throw Exception('Error occurred: $e');
@@ -61,18 +53,18 @@ Future<DesignationModel> updateDesignation(
 
 Future<String> deleteDesignation(int id) async {
   try {
-    Uri uriPut = Uri.parse('$url?id=$id');
-    var request = await client.delete(uriPut);
+    final Uri uriDelete = Uri.parse('$url?id=$id');
+    final response = await client.delete(uriDelete);
 
-    if (request.statusCode == 204) {
-      return 'Designation deleted successfuly.';
-    } else if (request.statusCode == 400) {
-      throw Exception(jsonDecode(request.body)['error_message'].toString());
+    if (response.statusCode == 204) {
+      return 'Designation deleted successfully.';
+    } else if (response.statusCode == 400) {
+      throw Exception(jsonDecode(response.body)['error_message'].toString());
     } else {
-      throw Exception('Failed to delete designation: ${request.reasonPhrase}');
+      throw Exception('Failed to delete designation: ${response.reasonPhrase}');
     }
   } catch (e) {
-    rethrow;
+    throw Exception('Error occurred: $e');
   }
 }
 

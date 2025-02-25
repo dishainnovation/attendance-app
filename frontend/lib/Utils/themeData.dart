@@ -13,7 +13,6 @@ ThemeData theme() {
         fontSize: 20,
       ),
       iconTheme: const IconThemeData(color: Colors.white),
-      elevation: 2,
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
       backgroundColor: Colors.green[900],

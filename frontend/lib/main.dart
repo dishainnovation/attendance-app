@@ -3,10 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:frontend/Utils/userInfo.dart';
 import 'package:frontend/app.dart';
+import 'package:frontend/widgets/errorFallback.dart';
 import 'package:provider/provider.dart';
 import 'Services/attendanceService.dart';
 import 'Services/userNotifier.dart';
 import 'package:workmanager/workmanager.dart';
+
+import 'Utils/themeData.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

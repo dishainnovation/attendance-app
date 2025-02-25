@@ -5,77 +5,21 @@ import 'package:frontend/Models/ShiftModel.dart';
 
 import 'dioClient.dart';
 
-String url = 'shift/';
-Uri uri = Uri.parse(url);
-
 final InterceptedClient client = InterceptedClient();
-
 Future<List<ShiftModel>> getShift() async {
-  try {
-    final response = await client.get(uri);
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      List<ShiftModel> employees = data.map((emp) {
-        return ShiftModel.fromJson(emp as Map<String, dynamic>);
-      }).toList();
-      return employees;
-    } else {
-      throw Exception('Failed to load shift: ${response.reasonPhrase}');
-    }
-  } catch (e) {
-    throw Exception('Error occurred: $e');
-  }
+  return _handleGetRequest('shift');
 }
 
 Future<ShiftModel> createShift(ShiftModel shift) async {
-  try {
-    shift.toJson();
-    var request = await client.post(uri, body: shift.toJson());
-
-    if (request.statusCode == 201) {
-      return ShiftModel.fromJson(
-          jsonDecode(request.body) as Map<String, dynamic>);
-    } else {
-      throw Exception('Failed to save shift: ${request.reasonPhrase}');
-    }
-  } catch (e) {
-    throw Exception('Error occurred: $e');
-  }
+  return _handlePostRequest('shift/', shift.toJson());
 }
 
 Future<ShiftModel> updateShift(int id, ShiftModel shift) async {
-  try {
-    Uri uriPut = Uri.parse('$url$id/');
-    var request = await client.put(uriPut, body: shift.toJson());
-
-    if (request.statusCode == 200) {
-      Map<String, dynamic> data =
-          jsonDecode(request.body) as Map<String, dynamic>;
-      return ShiftModel.fromJson(data);
-    } else {
-      throw Exception('Failed to save shift: ${request.reasonPhrase}');
-    }
-  } catch (e) {
-    throw Exception('Error occurred: $e');
-  }
+  return _handlePutRequest('shift/$id/', shift.toJson());
 }
 
 Future<String> deleteShift(int id) async {
-  try {
-    Uri uriPut = Uri.parse('$url$id/');
-    var request = await client.delete(uriPut);
-
-    if (request.statusCode == 204) {
-      return 'Shift deleted successfuly.';
-    } else if (request.statusCode == 400) {
-      throw Exception(jsonDecode(request.body)['error'].toString());
-    } else {
-      throw Exception('Failed to save shift: ${request.reasonPhrase}');
-    }
-  } catch (e) {
-    rethrow;
-  }
+  return _handleDeleteRequest('shift/$id/');
 }
 
 ShiftModel getShiftByName(String name, List<ShiftModel> shifts) {
@@ -83,54 +27,88 @@ ShiftModel getShiftByName(String name, List<ShiftModel> shifts) {
 }
 
 Future<List<ShiftModel>> getShiftById(int id) async {
-  try {
-    uri = Uri.parse('$url?id=$id');
-    final response = await client.get(uri);
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      List<ShiftModel> shifts = data.map((shift) {
-        return ShiftModel.fromJson(shift as Map<String, dynamic>);
-      }).toList();
-      return shifts;
-    } else {
-      throw Exception('Failed to load shifts: ${response.reasonPhrase}');
-    }
-  } catch (e) {
-    throw Exception('Error occurred: $e');
-  }
+  return _handleGetRequest('shift?id=$id');
 }
 
 Future<List<ShiftModel>> getShiftsByPort(int portId) async {
-  try {
-    uri = Uri.parse('$url?port_id=$portId');
-    final response = await client.get(uri);
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      List<ShiftModel> shifts = data.map((shift) {
-        return ShiftModel.fromJson(shift as Map<String, dynamic>);
-      }).toList();
-      return shifts;
-    } else {
-      throw Exception('Failed to load shifts: ${response.reasonPhrase}');
-    }
-  } catch (e) {
-    throw Exception('Error occurred: $e');
-  }
+  return _handleGetRequest('shift?port_id=$portId');
 }
 
 Future<ShiftModel?> getCurrentShift(int portId, TimeOfDay time) async {
   try {
-    ShiftModel shift;
-    List<ShiftModel> shifts = await getShift();
-    shift = shifts.firstWhere((s) {
-      return s.port == portId &&
-          time.isAfter(s.startTime!) &&
-          time.isBefore(s.endTime!);
-    }); //
-    return shift;
+    List<ShiftModel> shifts = await getShiftsByPort(portId);
+    return shifts.firstWhere(
+        (s) => time.isAfter(s.startTime!) && time.isBefore(s.endTime!));
   } catch (e) {
     return null;
+  }
+}
+
+Future<List<ShiftModel>> _handleGetRequest(String endpoint) async {
+  try {
+    Uri uri = Uri.parse(endpoint);
+    final response = await client.get(uri);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => ShiftModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load data: ${response.reasonPhrase}');
+    }
+  } catch (e) {
+    throw Exception('Error occurred during GET request: $e');
+  }
+}
+
+Future<ShiftModel> _handlePostRequest(
+    String endpoint, Map<String, dynamic> body) async {
+  try {
+    Uri uri = Uri.parse(endpoint);
+    final response = await client.post(uri, body: jsonEncode(body), headers: {
+      'Content-Type': 'application/json',
+    });
+
+    if (response.statusCode == 201) {
+      return ShiftModel.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to create data: ${response.reasonPhrase}');
+    }
+  } catch (e) {
+    throw Exception('Error occurred during POST request: $e');
+  }
+}
+
+Future<ShiftModel> _handlePutRequest(
+    String endpoint, Map<String, dynamic> body) async {
+  try {
+    Uri uri = Uri.parse(endpoint);
+    final response = await client.put(uri, body: jsonEncode(body), headers: {
+      'Content-Type': 'application/json',
+    });
+
+    if (response.statusCode == 200) {
+      return ShiftModel.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to update data: ${response.reasonPhrase}');
+    }
+  } catch (e) {
+    throw Exception('Error occurred during PUT request: $e');
+  }
+}
+
+Future<String> _handleDeleteRequest(String endpoint) async {
+  try {
+    Uri uri = Uri.parse(endpoint);
+    final response = await client.delete(uri);
+
+    if (response.statusCode == 204) {
+      return 'Shift deleted successfully.';
+    } else if (response.statusCode == 400) {
+      throw Exception(jsonDecode(response.body)['error'].toString());
+    } else {
+      throw Exception('Failed to delete data: ${response.reasonPhrase}');
+    }
+  } catch (e) {
+    throw Exception('Error occurred during DELETE request: $e');
   }
 }

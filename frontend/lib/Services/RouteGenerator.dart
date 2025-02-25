@@ -13,65 +13,81 @@ import 'package:frontend/shift.dart';
 import 'package:frontend/terminal.dart';
 import 'package:frontend/terminalsList.dart';
 import 'package:frontend/userHome.dart';
-
 import '../attendance.dart';
 import '../employee.dart';
 import '../shiftsList.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
+    final WidgetBuilder builder;
     switch (settings.name) {
       case '/':
-        return MaterialPageRoute(builder: (_) => HomePage());
+        builder = (_) => const HomePage();
+        break;
       case '/login':
-        return MaterialPageRoute(builder: (_) => Login());
+        builder = (_) => const Login();
+        break;
       case '/screen':
-        return MaterialPageRoute(builder: (_) => Screen());
+        builder = (_) => const Screen();
+        break;
       case '/super-admin-home':
-        return MaterialPageRoute(builder: (_) => AdminHome());
+        builder = (_) => const AdminHome();
+        break;
       case '/admin-home':
-        return MaterialPageRoute(builder: (_) => HomePage());
+        builder = (_) => const HomePage();
+        break;
       case '/user-home':
-        return MaterialPageRoute(builder: (_) => UserHome());
+        builder = (_) => const UserHome();
+        break;
       case '/port':
-        return MaterialPageRoute(builder: (_) => Port());
+        builder = (_) => const Port();
+        break;
       case '/ports-list':
-        return MaterialPageRoute(builder: (_) => Portslist());
+        builder = (_) => const Portslist();
+        break;
       case '/terminal':
-        return MaterialPageRoute(builder: (_) => Terminal());
+        builder = (_) => const Terminal();
+        break;
       case '/terminals-list':
-        return MaterialPageRoute(builder: (_) => TerminalsList());
+        builder = (_) => const TerminalsList();
+        break;
       case '/shifts-list':
-        return MaterialPageRoute(builder: (_) => ShiftsList());
+        builder = (_) => const ShiftsList();
+        break;
       case '/shift':
-        return MaterialPageRoute(builder: (_) => Shift());
+        builder = (_) => const Shift();
+        break;
       case '/designations-list':
-        return MaterialPageRoute(builder: (_) => DesignationsList());
+        builder = (_) => const DesignationsList();
+        break;
       case '/designation':
-        return MaterialPageRoute(builder: (_) => Designation());
+        builder = (_) => const Designation();
+        break;
       case '/employees-list':
-        return MaterialPageRoute(builder: (_) => EmployeesList());
+        builder = (_) => const EmployeesList();
+        break;
       case '/employee':
-        return MaterialPageRoute(
-            builder: (_) => Employee(
-                  employeeesList: [],
-                ));
+        builder = (_) => const Employee(employeeesList: []);
+        break;
       case '/check-in':
-        return MaterialPageRoute(builder: (_) => CheckIn());
+        builder = (_) => const CheckIn();
+        break;
       case '/attendace-report':
-        return MaterialPageRoute(builder: (_) => AttendanceReport());
+        builder = (_) => const AttendanceReport();
+        break;
       default:
-        return errorRoute();
+        return _errorRoute();
     }
+    return MaterialPageRoute(builder: builder);
   }
 
-  static Route<dynamic> errorRoute() {
+  static Route<dynamic> _errorRoute() {
     return MaterialPageRoute(builder: (_) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('Error'),
+          title: const Text('Error'),
         ),
-        body: Center(
+        body: const Center(
           child: Text('Page not found!'),
         ),
       );

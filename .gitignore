@@ -30,7 +30,7 @@ pubspec.lock
 *.py[cod]
 __pycache__/
 *.so
-
+backend\attendance_tracker\profile_images\
 # Django stuff:
 *.log
 *.pot

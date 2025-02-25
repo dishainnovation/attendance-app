@@ -66,7 +66,7 @@ class _EmployeesListState extends State<EmployeesList> {
       isLoading = true;
     });
     await getPorts();
-    await getEmployees(selectedPort!.id);
+    if (selectedPort != null) await getEmployees(selectedPort!.id);
   }
 
   getEmployees(int portId) async {

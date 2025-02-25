@@ -21,9 +21,11 @@ class Appbar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: true,
+      elevation: 2,
       title: Text(title),
       centerTitle: false,
       leading: leading,
+      shadowColor: Colors.black,
       shape: bottom != null
           ? null
           : const RoundedRectangleBorder(
