@@ -25,6 +25,7 @@ flutter_out/
 # Generated files
 generated_plugin_registrant.dart
 pubspec.lock
+backend\attendance_tracker\profile_images\*.*
 
 # Python 
 *.py[cod]
