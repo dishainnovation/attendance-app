@@ -3,6 +3,7 @@ import 'package:frontend/widgets/errorFallback.dart';
 import 'package:frontend/widgets/unfocus.dart';
 
 import '../Models/ErrorObject.dart';
+import '../Utils/headerClip.dart';
 import 'Appbar.dart';
 
 class ScaffoldPage extends StatelessWidget {
@@ -13,6 +14,7 @@ class ScaffoldPage extends StatelessWidget {
   final PreferredSizeWidget? bottom;
   final double? bottomHeight;
   final ErrorObject error;
+  final bool? showHeaderClip;
   const ScaffoldPage(
       {super.key,
       this.body,
@@ -21,16 +23,17 @@ class ScaffoldPage extends StatelessWidget {
       this.bottom,
       this.drawer,
       required this.error,
-      this.bottomHeight = 120});
+      this.bottomHeight = 120,
+      this.showHeaderClip = false});
 
   @override
   Widget build(BuildContext context) {
     if (error.title.isNotEmpty) return ErrorFallback(error: error);
+
     return SafeArea(
         child: UnfocusOnTap(
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        // backgroundColor: Colors.green[50],
         appBar: bottom == null
             ? Appbar(title: title)
             : PreferredSize(
@@ -39,9 +42,20 @@ class ScaffoldPage extends StatelessWidget {
               ),
         drawer: drawer,
         floatingActionButton: floatingButton,
-        body: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: body,
+        body: Stack(
+          children: [
+            Visibility(
+              visible: showHeaderClip!,
+              child: CustomPaint(
+                size: Size(MediaQuery.of(context).size.width, 150),
+                painter: RPSCustomPainter(),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: body,
+            ),
+          ],
         ),
       ),
     ));

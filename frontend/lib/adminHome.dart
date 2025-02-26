@@ -99,12 +99,13 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
     return ScaffoldPage(
       error: error,
       title: 'Attendance Tracker',
+      showHeaderClip: true,
       drawer: _drawer(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (employee != null) _employeeInfo(context),
-          const Divider(height: 40),
+          const SizedBox(height: 40),
           Flexible(flex: 4, fit: FlexFit.tight, child: _functionGrid()),
           const Divider(),
           const Text(
@@ -157,12 +158,14 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
         RichText(
           text: TextSpan(
             text: 'Welcome ',
-            style: Theme.of(context).textTheme.headlineSmall,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,
+                ),
             children: [
               TextSpan(
                 text: employee!.name,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Theme.of(context).primaryColor,
+                      color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
               ),
@@ -178,11 +181,14 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
               children: [
                 Text(
                   'Designation:',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                      ),
                 ),
                 Text(
                   employee!.designation!.name.toString(),
                   style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                 ),
@@ -197,6 +203,7 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
                     ),
                   )
                 : Button(
+                    borderRadius: 40,
                     label:
                         attendance != null && attendance!.checkOutTime == null
                             ? 'Check Out'
@@ -204,7 +211,7 @@ class _AdminHomeState extends State<AdminHome> with TickerProviderStateMixin {
                     color:
                         attendance != null && attendance!.checkOutTime == null
                             ? Colors.red
-                            : Theme.of(context).primaryColor,
+                            : Colors.greenAccent,
                     onPressed: () {
                       NavigationService.navigateTo('/check-in');
                     },

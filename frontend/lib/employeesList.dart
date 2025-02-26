@@ -3,6 +3,7 @@ import 'package:frontend/Models/EmployeeModel.dart';
 import 'package:frontend/Services/employeeService.dart';
 import 'package:frontend/Services/userNotifier.dart';
 import 'package:frontend/employee.dart';
+import 'package:frontend/widgets/employeeCard.dart';
 import 'package:provider/provider.dart';
 
 import 'Models/ErrorObject.dart';
@@ -130,7 +131,68 @@ class _EmployeesListState extends State<EmployeesList> {
                 ? ListView.builder(
                     itemCount: filteredEmployeesList.length,
                     itemBuilder: (context, index) {
-                      return employeeCard(filteredEmployeesList[index]);
+                      return EmployeeCard(
+                        employee: filteredEmployeesList[index],
+                        onEdit: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Employee(
+                                employee: filteredEmployeesList[index],
+                                employeeesList: allEmployeesList,
+                              ),
+                            ),
+                          ).then((onValue) {
+                            setState(() {});
+                          });
+                        },
+                        onDelete: () async {
+                          await showDialog(
+                            context: context,
+                            barrierDismissible:
+                                false, // User must tap button to close dialog
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text('Employee'),
+                                content: const SingleChildScrollView(
+                                  child: Text(
+                                      'Are you sure you want to delete this employee?'),
+                                ),
+                                actions: <Widget>[
+                                  TextButton(
+                                    child: const Text('Approve'),
+                                    onPressed: () async {
+                                      Navigator.of(context).pop(true);
+                                    },
+                                  ),
+                                  TextButton(
+                                    child: const Text('Cancel'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop(false);
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          ).then((value) async {
+                            if (value) {
+                              await deleteEmployee(
+                                      filteredEmployeesList[index].id)
+                                  .then((result) async {
+                                await Dialogs.showMessageDialog(
+                                    context, 'Employee', result);
+                                getData();
+                              }).catchError(
+                                (err) {
+                                  Dialogs.showMessageDialog(
+                                      context, 'Employee', err.toString());
+                                },
+                              );
+                            }
+                          });
+                        },
+                        isActionable: true,
+                      );
                     })
                 : const Center(
                     child: Text('No records found.'),
@@ -179,170 +241,6 @@ class _EmployeesListState extends State<EmployeesList> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget employeeCard(EmployeeModel employee) {
-    return Card(
-      color: Colors.white,
-      child: ExpansionTile(
-        expandedCrossAxisAlignment: CrossAxisAlignment.start,
-        expandedAlignment: Alignment.centerLeft,
-        title: Text(employee.name),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              employee.designation!.name,
-              style: const TextStyle(color: Colors.blueAccent),
-            ),
-            Text(
-              employee.mobileNumber,
-              style: const TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-        trailing: actions(employee),
-        children: <Widget>[
-          const Divider(
-            height: 8,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(
-              left: 17.0,
-              right: 15,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Code: ${employee.employeeCode}',
-                  style: const TextStyle(color: Colors.grey),
-                ),
-                Text(
-                  'Port: ${employee.portName}',
-                  style: const TextStyle(color: Colors.black),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 17.0),
-            child: Text(
-              'Gender: ${employee.gender}',
-              style: const TextStyle(color: Colors.grey),
-            ),
-          ),
-          const Divider(
-            height: 8,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(
-              left: 17.0,
-              right: 10,
-              bottom: 6,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Birth : ${Formatter.displayDate(DateTime.parse(employee.dateOfBirth))}',
-                  style: const TextStyle(color: Colors.grey),
-                ),
-                Container(
-                  color: Colors.grey,
-                  width: 1,
-                  height: 20,
-                ),
-                Text(
-                  'Hire Date: ${Formatter.displayDate(DateTime.parse(employee.dateOfJoining))}',
-                  style: const TextStyle(color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget actions(EmployeeModel employee) {
-    return SizedBox(
-      width: 60,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Employee(
-                    employee: employee,
-                    employeeesList: allEmployeesList,
-                  ),
-                ),
-              ).then((onValue) {
-                setState(() {});
-              });
-            },
-            child: const Icon(
-              Icons.edit,
-              color: Colors.green,
-            ),
-          ),
-          const SizedBox(width: 10),
-          InkWell(
-            onTap: () async {
-              await showDialog(
-                context: context,
-                barrierDismissible:
-                    false, // User must tap button to close dialog
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text('Employee'),
-                    content: const SingleChildScrollView(
-                      child: Text(
-                          'Are you sure you want to delete this employee?'),
-                    ),
-                    actions: <Widget>[
-                      TextButton(
-                        child: const Text('Approve'),
-                        onPressed: () async {
-                          Navigator.of(context).pop(true);
-                        },
-                      ),
-                      TextButton(
-                        child: const Text('Cancel'),
-                        onPressed: () {
-                          Navigator.of(context).pop(false);
-                        },
-                      ),
-                    ],
-                  );
-                },
-              ).then((value) async {
-                if (value) {
-                  await deleteEmployee(employee.id).then((result) async {
-                    await Dialogs.showMessageDialog(
-                        context, 'Employee', result);
-                    getData();
-                  }).catchError(
-                    (err) {
-                      Dialogs.showMessageDialog(
-                          context, 'Employee', err.toString());
-                    },
-                  );
-                }
-              });
-            },
-            child: const Icon(
-              Icons.delete,
-              color: Colors.red,
-            ),
-          ),
-        ],
       ),
     );
   }
