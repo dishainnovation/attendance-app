@@ -94,12 +94,12 @@ load_dotenv()
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE'),
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'attendance',
+        'USER': 'superuser',
+        'PASSWORD': 'superuser',
+        'HOST': 'attendance.c9ouu4w6e9ix.ap-south-1.rds.amazonaws.com',
+        'PORT': 5432,
         # 'OPTIONS': {
         #     'driver': 'ODBC Driver 17 for SQL Server',
         # },
@@ -157,3 +157,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+AWS_ACCESS_KEY_ID = 'AKIAVJB5IIZYRXKGNE5S'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'attendancetrackerapp'
+AWS_S3_SIGNATURE_NAME = 's3v4',
+AWS_S3_REGION_NAME = 'ap-south-1'
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL =  None
+AWS_S3_VERITY = True
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
