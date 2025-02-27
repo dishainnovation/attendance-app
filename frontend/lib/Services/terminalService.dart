@@ -9,23 +9,23 @@ final String baseUrl = 'site/';
 final InterceptedClient client = InterceptedClient();
 
 Future<List<SiteModel>> getSite() async {
-  return _handleGetRequest('site');
+  return _handleGetRequest(baseUrl);
 }
 
 Future<SiteModel> createSite(SiteModel site) async {
-  return _handlePostRequest('site', site.toJson());
+  return _handlePostRequest(baseUrl, site.toJson());
 }
 
 Future<SiteModel> updateSite(int id, SiteModel site) async {
-  return _handlePutRequest('site/$id', site.toJson());
+  return _handlePutRequest('$baseUrl$id', site.toJson());
 }
 
 Future<String> deleteSite(int id) async {
-  return _handleDeleteRequest('site/$id');
+  return _handleDeleteRequest('$baseUrl$id');
 }
 
 Future<List<SiteModel>> getSitesByPort(int portId) async {
-  return _handleGetRequest('site?port_id=$portId');
+  return _handleGetRequest('$baseUrl?port_id=$portId');
 }
 
 Future<SiteModel> getSiteByLocation(EmployeeModel employee, int portId,

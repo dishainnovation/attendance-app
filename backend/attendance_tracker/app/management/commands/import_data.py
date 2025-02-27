@@ -18,16 +18,16 @@ class Command(BaseCommand):
         for sheet_name, df in sheets.items():
             self.stdout.write(f'Processing sheet: {sheet_name}')
 
-            if sheet_name == 'Designations':
-                for index, row in df.iterrows():
-                    designation, created = Designation.objects.get_or_create(
-                        name=row['name'],
-                        defaults={
-                            'user_type': row['user_type'],
-                            'remote_checkin': row['remote_checkin']
-                        }
-                    )
-            elif sheet_name == 'Ports':
+            # if sheet_name == 'Designations':
+            #     for index, row in df.iterrows():
+            #         designation, created = Designation.objects.get_or_create(
+            #             name=row['name'],
+            #             defaults={
+            #                 'user_type': row['user_type'],
+            #                 'remote_checkin': row['remote_checkin']
+            #             }
+            #         )
+            if sheet_name == 'Ports':
                 for index, row in df.iterrows():
                     port, created = Port.objects.get_or_create(
                         name=row['name'],
@@ -40,7 +40,7 @@ class Command(BaseCommand):
                     employee, created = Employee.objects.get_or_create(
                         employee_code=row['employee_code'],
                         defaults={
-                            'profile_image': row['profile_image'],
+                            # 'profile_image': row['profile_image'],
                             'name': row['name'],
                             'gender': row['gender'],
                             'date_of_birth': row['date_of_birth'],

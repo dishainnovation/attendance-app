@@ -65,10 +65,8 @@ class EmployeeCard extends StatelessWidget {
                       child: CircleAvatar(
                         radius: 30,
                         backgroundImage: employee.profileImage != null
-                            ? NetworkImage(
-                                '$baseImageUrl${employee.profileImage!}')
-                            : const NetworkImage('assets/images/user.png')
-                                as ImageProvider,
+                            ? NetworkImage(employee.profileImage!)
+                            : const AssetImage('assets/images/no-image.jpg'),
                       ),
                     ),
                   ],

@@ -423,7 +423,7 @@ class _EmployeeState extends State<Employee> {
                     )
                   : isNetworkImage
                       ? Image.network(
-                          baseImageUrl + employee.employeePhoto!.path,
+                          employee.employeePhoto!.path,
                           height: 200,
                           width: 200,
                           fit: BoxFit.cover,

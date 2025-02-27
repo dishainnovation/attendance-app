@@ -36,6 +36,7 @@ dependencies:
   accordion: ^2.6.0
   workmanager: ^0.5.2
   file_picker: ^9.0.1
+  in_app_update: ^4.2.3
 
 dev_dependencies:
   flutter_test:

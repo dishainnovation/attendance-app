@@ -5,21 +5,23 @@ import 'package:frontend/Models/ShiftModel.dart';
 
 import 'dioClient.dart';
 
+final String baseUrl = 'shift/';
+
 final InterceptedClient client = InterceptedClient();
 Future<List<ShiftModel>> getShift() async {
-  return _handleGetRequest('shift');
+  return _handleGetRequest(baseUrl);
 }
 
 Future<ShiftModel> createShift(ShiftModel shift) async {
-  return _handlePostRequest('shift/', shift.toJson());
+  return _handlePostRequest(baseUrl, shift.toJson());
 }
 
 Future<ShiftModel> updateShift(int id, ShiftModel shift) async {
-  return _handlePutRequest('shift/$id/', shift.toJson());
+  return _handlePutRequest('$baseUrl$id/', shift.toJson());
 }
 
 Future<String> deleteShift(int id) async {
-  return _handleDeleteRequest('shift/$id/');
+  return _handleDeleteRequest('$baseUrl$id/');
 }
 
 ShiftModel getShiftByName(String name, List<ShiftModel> shifts) {
@@ -27,11 +29,11 @@ ShiftModel getShiftByName(String name, List<ShiftModel> shifts) {
 }
 
 Future<List<ShiftModel>> getShiftById(int id) async {
-  return _handleGetRequest('shift?id=$id');
+  return _handleGetRequest('$baseUrl?id=$id');
 }
 
 Future<List<ShiftModel>> getShiftsByPort(int portId) async {
-  return _handleGetRequest('shift?port_id=$portId');
+  return _handleGetRequest('$baseUrl?port_id=$portId');
 }
 
 Future<ShiftModel?> getCurrentShift(int portId, TimeOfDay time) async {

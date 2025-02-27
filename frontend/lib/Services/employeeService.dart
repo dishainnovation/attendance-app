@@ -125,7 +125,7 @@ Future<void> _addFileToRequest(http.MultipartRequest request, File file) async {
 }
 
 Future<void> _addFileFromUrl(http.MultipartRequest request, File file) async {
-  final respImage = await http.get(Uri.parse(baseImageUrl + file.path));
+  final respImage = await http.get(Uri.parse(file.path));
   final String filename = file.path.split('/').last;
 
   if (respImage.statusCode == 200) {

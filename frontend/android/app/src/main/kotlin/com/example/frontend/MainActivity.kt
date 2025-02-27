@@ -1,4 +1,4 @@
-package com.symfricon.attendance
+package com.symfricon.attendanceapp
 
 import io.flutter.embedding.android.FlutterActivity
 
