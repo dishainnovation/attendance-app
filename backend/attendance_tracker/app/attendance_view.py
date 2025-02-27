@@ -35,6 +35,7 @@ def attendance_list(request):
             employee = Employee.objects.get(id=employee_id)
             user_image = request.FILES.get('user_photo')
             match = compare(user_image, employee.profile_image)
+            print(match)
 
             if match[0]['match']:
                 attendance = Attendance(
