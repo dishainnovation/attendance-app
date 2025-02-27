@@ -80,17 +80,6 @@ WSGI_APPLICATION = 'attendance_tracker.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'attendance',
-#         'USER': 'admin',
-#         'PASSWORD': 'admin',
-#         'HOST': 'localhost',  # Set to your database server's address
-#         'PORT': '5432',       # Default port for PostgreSQL
-#     }
-# }
-
 load_dotenv()
 
 DATABASES = {
