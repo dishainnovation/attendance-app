@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'package:frontend/Utils/constants.dart';
 import 'package:frontend/Utils/location.dart';
+import 'package:frontend/widgets/employeeCard.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/ShiftModel.dart';
@@ -106,14 +108,20 @@ class _UserHomeState extends State<UserHome> {
     return ScaffoldPage(
       error: error,
       title: user != null ? user!.name : 'Home',
+      showHeaderClip: true,
       body: Column(
         children: [
+          // const SizedBox(
+          //   height: 120,
+          // ),
           Expanded(
             flex: 6,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Visibility(visible: user != null, child: employeeCard(user!)),
+                Visibility(
+                    visible: user != null,
+                    child: EmployeeCard(employee: user!, isActionable: false)),
                 Visibility(
                   visible: !isProfileCompleted,
                   child: const SizedBox(
@@ -133,22 +141,28 @@ class _UserHomeState extends State<UserHome> {
                       )
                     : Container(),
                 const SizedBox(height: 40),
-                Center(
-                  child: LinearPercentIndicator(
-                    animation: true,
-                    barRadius: const Radius.circular(10),
-                    lineHeight: 30.0,
-                    percent: percentageDone,
-                    backgroundColor: Colors.grey[400],
-                    progressColor: Colors.green,
-                    leading: shift != null
-                        ? Text(shift!.startTime!.format(context))
-                        : Container(),
-                    trailing: shift != null
-                        ? Text(shift!.endTime!.format(context))
-                        : Container(),
-                  ),
-                ),
+                attendance == null
+                    ? Container(
+                        padding: const EdgeInsets.all(20),
+                        child: const Text(
+                            'You are not currently checked in. To check in, please click the "Check-In" button below.'),
+                      )
+                    : Center(
+                        child: LinearPercentIndicator(
+                          animation: true,
+                          barRadius: const Radius.circular(10),
+                          lineHeight: 30.0,
+                          percent: percentageDone,
+                          backgroundColor: Colors.grey[400],
+                          progressColor: Colors.green,
+                          leading: shift != null
+                              ? Text(shift!.startTime!.format(context))
+                              : Container(),
+                          trailing: shift != null
+                              ? Text(shift!.endTime!.format(context))
+                              : Container(),
+                        ),
+                      ),
                 const SizedBox(height: 40),
                 Button(
                   label: attendance != null && attendance!.checkOutTime == null
@@ -179,75 +193,6 @@ class _UserHomeState extends State<UserHome> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget employeeCard(EmployeeModel employee) {
-    return Card(
-      color: Colors.white,
-      child: ListTile(
-        title: Text(employee.name),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              employee.designation!.name,
-              style: const TextStyle(color: Colors.blueAccent),
-            ),
-            Text(
-              employee.mobileNumber,
-              style: const TextStyle(color: Colors.grey),
-            ),
-            const Divider(
-              height: 8,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Code: ${employee.employeeCode}',
-                  style: const TextStyle(color: Colors.grey),
-                ),
-                Text(
-                  'Port: ${employee.portName}',
-                  style: const TextStyle(color: Colors.black),
-                ),
-              ],
-            ),
-            Text(
-              'Gender: ${employee.gender}',
-              style: const TextStyle(color: Colors.grey),
-            ),
-            const Divider(
-              height: 8,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Birth : ${Formatter.displayDate(DateTime.parse(employee.dateOfBirth))}',
-                  style: TextStyle(
-                    color: Colors.grey[900],
-                    fontSize: 12,
-                  ),
-                ),
-                Container(
-                  color: Colors.grey,
-                  width: 1,
-                  height: 20,
-                ),
-                Text(
-                  'Hire Date: ${Formatter.displayDate(DateTime.parse(employee.dateOfJoining))}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[900],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:mime/mime.dart';
@@ -10,9 +9,8 @@ import 'package:http_parser/http_parser.dart';
 import '../Utils/constants.dart';
 import 'dioClient.dart';
 
-String url = 'employee/';
-Uri uri = Uri.parse(url);
-
+final String url = 'employee/';
+final Uri uri = Uri.parse(url);
 final InterceptedClient client = InterceptedClient();
 
 Future<List<EmployeeModel>> getEmployees() async {
@@ -21,10 +19,7 @@ Future<List<EmployeeModel>> getEmployees() async {
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
-      List<EmployeeModel> employees = data.map((emp) {
-        return EmployeeModel.fromJson(emp as Map<String, dynamic>);
-      }).toList();
-      return employees;
+      return data.map((emp) => EmployeeModel.fromJson(emp)).toList();
     } else {
       throw Exception('Failed to load employees: ${response.reasonPhrase}');
     }
@@ -36,33 +31,11 @@ Future<List<EmployeeModel>> getEmployees() async {
 Future<bool> createEmployee(EmployeeModel employee, File file) async {
   try {
     var request = http.MultipartRequest('POST', uri);
+    _addFieldsToRequest(request, employee);
 
-    employee.toJson().forEach((key, value) {
-      if (key == 'designation') {
-        request.fields[key] = value['id'].toString();
-      } else {
-        request.fields[key] = value.toString();
-      }
-    });
+    await _addFileToRequest(request, file);
 
-    final mimeTypeData =
-        lookupMimeType(file.path, headerBytes: [0xFF, 0xD8])?.split('/');
-
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        'profile_image',
-        file.path,
-        contentType: MediaType(mimeTypeData![0], mimeTypeData[1]),
-      ),
-    );
-
-    http.StreamedResponse response = await client.send(request);
-
-    if (response.statusCode == 201) {
-      return true;
-    } else {
-      throw Exception('Failed to save employees: ${response.reasonPhrase}');
-    }
+    return await _handleRequest(request, 201, 'Failed to save employees');
   } catch (e) {
     if (kDebugMode) {
       print(e);
@@ -73,56 +46,17 @@ Future<bool> createEmployee(EmployeeModel employee, File file) async {
 
 Future<bool> updateEmployee(int id, EmployeeModel employee, File file) async {
   try {
-    Uri uriPut = Uri.parse('$url?id=$id');
+    final Uri uriPut = Uri.parse('$url?id=$id');
     var request = http.MultipartRequest('PUT', uriPut);
-
-    employee.toJson().forEach((key, value) {
-      if (key == 'designation') {
-        request.fields[key] = value['id'].toString();
-      } else {
-        request.fields[key] = value.toString();
-      }
-    });
+    _addFieldsToRequest(request, employee);
 
     if (await file.exists()) {
-      final mimeTypeData =
-          lookupMimeType(file.path, headerBytes: [0xFF, 0xD8])?.split('/');
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'profile_image',
-          file.path,
-          contentType: MediaType(mimeTypeData![0], mimeTypeData[1]),
-        ),
-      );
-
-      http.StreamedResponse response = await client.send(request);
-
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        throw Exception('Failed to save employees: ${response.reasonPhrase}');
-      }
+      await _addFileToRequest(request, file);
     } else {
-      final respImage = await http.get(Uri.parse(baseImageUrl + file.path));
-      String filename = file.path.split('/').last;
-
-      if (respImage.statusCode == 200) {
-        Uint8List bytes = respImage.bodyBytes;
-        http.MultipartFile fl = http.MultipartFile.fromBytes(
-            'profile_image', bytes,
-            filename: filename);
-        request.files.add(fl);
-        http.StreamedResponse response = await request.send();
-
-        if (response.statusCode == 200) {
-          return true;
-        } else {
-          throw Exception('Failed to save employees: ${response.reasonPhrase}');
-        }
-      } else {
-        throw Exception('Failed to save employees: ${respImage.reasonPhrase}');
-      }
+      await _addFileFromUrl(request, file);
     }
+
+    return await _handleRequest(request, 200, 'Failed to save employees');
   } catch (e) {
     throw Exception('Error occurred: $e');
   }
@@ -130,15 +64,15 @@ Future<bool> updateEmployee(int id, EmployeeModel employee, File file) async {
 
 Future<String> deleteEmployee(int id) async {
   try {
-    Uri uriPut = Uri.parse('$url?id=$id');
-    var request = await client.delete(uriPut);
+    final Uri uriDelete = Uri.parse('$url?id=$id');
+    final response = await client.delete(uriDelete);
 
-    if (request.statusCode == 204) {
-      return 'Employee deleted successfuly.';
-    } else if (request.statusCode == 400) {
-      throw Exception(jsonDecode(request.body)['error_message'].toString());
+    if (response.statusCode == 204) {
+      return 'Employee deleted successfully.';
+    } else if (response.statusCode == 400) {
+      throw Exception(jsonDecode(response.body)['error_message'].toString());
     } else {
-      throw Exception('Failed to delete Employee: ${request.reasonPhrase}');
+      throw Exception('Failed to delete Employee: ${response.reasonPhrase}');
     }
   } catch (e) {
     rethrow;
@@ -147,28 +81,73 @@ Future<String> deleteEmployee(int id) async {
 
 String generateEmployeeCode(String prefix, List<EmployeeModel> employees) {
   if (employees.isEmpty) return '${prefix}_00000001';
-  EmployeeModel emp = employees
+  final EmployeeModel emp = employees
       .reduce((value, element) => value.id > element.id ? value : element);
 
-  int maxId = emp.id + 1;
+  final int maxId = emp.id + 1;
   return '${prefix}_${maxId.toString().padLeft(8, '0')}';
 }
 
 Future<List<EmployeeModel>> getEmployeesByPort(int portId) async {
   try {
-    Uri uriPut = Uri.parse('$url?port_id=$portId');
-    final response = await client.get(uriPut);
+    final Uri uriPort = Uri.parse('$url?port_id=$portId');
+    final response = await client.get(uriPort);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
-      List<EmployeeModel> employees = data.map((emp) {
-        return EmployeeModel.fromJson(emp as Map<String, dynamic>);
-      }).toList();
-      return employees;
+      return data.map((emp) => EmployeeModel.fromJson(emp)).toList();
     } else {
       throw Exception('Failed to load employees: ${response.reasonPhrase}');
     }
   } catch (e) {
     rethrow;
+  }
+}
+
+void _addFieldsToRequest(
+    http.MultipartRequest request, EmployeeModel employee) {
+  employee.toJson().forEach((key, value) {
+    request.fields[key] =
+        key == 'designation' ? value['id'].toString() : value.toString();
+  });
+}
+
+Future<void> _addFileToRequest(http.MultipartRequest request, File file) async {
+  final mimeTypeData =
+      lookupMimeType(file.path, headerBytes: [0xFF, 0xD8])?.split('/');
+  request.files.add(
+    await http.MultipartFile.fromPath(
+      'profile_image',
+      file.path,
+      contentType: MediaType(mimeTypeData![0], mimeTypeData[1]),
+    ),
+  );
+}
+
+Future<void> _addFileFromUrl(http.MultipartRequest request, File file) async {
+  final respImage = await http.get(Uri.parse(file.path));
+  final String filename = file.path.split('/').last;
+
+  if (respImage.statusCode == 200) {
+    final Uint8List bytes = respImage.bodyBytes;
+    final http.MultipartFile multipartFile = http.MultipartFile.fromBytes(
+      'profile_image',
+      bytes,
+      filename: filename,
+    );
+    request.files.add(multipartFile);
+  } else {
+    throw Exception('Failed to fetch image: ${respImage.reasonPhrase}');
+  }
+}
+
+Future<bool> _handleRequest(http.MultipartRequest request,
+    int expectedStatusCode, String errorMessage) async {
+  final http.StreamedResponse response = await client.send(request);
+
+  if (response.statusCode == expectedStatusCode) {
+    return true;
+  } else {
+    throw Exception('$errorMessage: ${response.reasonPhrase}');
   }
 }

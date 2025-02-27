@@ -4,7 +4,7 @@ import 'package:frontend/Models/ErrorObject.dart';
 class ErrorFallback extends StatelessWidget {
   final ErrorObject error;
 
-  const ErrorFallback({Key? key, required this.error}) : super(key: key);
+  const ErrorFallback({super.key, required this.error});
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -15,25 +15,25 @@ class ErrorFallback extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error, color: Colors.red, size: 64),
-                SizedBox(height: 16),
+                const Icon(Icons.error, color: Colors.red, size: 64),
+                const SizedBox(height: 16),
                 Text(
                   error.title,
-                  style: TextStyle(fontSize: 18, color: Colors.red),
+                  style: const TextStyle(fontSize: 18, color: Colors.red),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
                   error.message,
-                  style: TextStyle(fontSize: 14, color: Colors.black),
+                  style: const TextStyle(fontSize: 14, color: Colors.black),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop((route) => route.isFirst);
                   },
-                  child: Text('Go to Home'),
+                  child: const Text('Go to Home'),
                 ),
               ],
             ),

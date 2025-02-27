@@ -1,5 +1,5 @@
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import '../Utils/constants.dart';
 
 class InterceptedClient extends http.BaseClient {
@@ -9,44 +9,45 @@ class InterceptedClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    // Add base URL to the request
     final newUrl = Uri.parse(baseUrl).resolve(request.url.toString());
-    http.BaseRequest newRequest;
+    final newRequest = _modifyRequest(request, newUrl);
 
-    // Handle MultipartRequest separately
-    if (request is http.MultipartRequest) {
-      final multipartRequest = http.MultipartRequest(request.method, newUrl);
-      multipartRequest.headers.addAll(request.headers);
-      multipartRequest.files.addAll(request.files);
-      multipartRequest.fields.addAll(request.fields);
-      newRequest = multipartRequest;
-    } else {
-      newRequest = http.Request(request.method, newUrl)
-        ..headers.addAll(request.headers)
-        ..body = request is http.Request ? request.body : '';
-    }
-
-    // Add request interceptor logic here
-    print('Request: ${newRequest.method} ${newRequest.url}');
-    newRequest.headers['Accept'] = 'application/json';
-    newRequest.headers['Authorization'] = 'Bearer your_token_here';
+    debugPrint('Request: ${newRequest.method} ${newRequest.url}');
+    newRequest.headers
+      ..['Accept'] = 'application/json'
+      ..['Authorization'] = 'Bearer your_token_here';
 
     try {
       final response = await _inner.send(newRequest);
-
-      // Add response interceptor logic here
-      print('Response: ${response.statusCode}');
-
+      debugPrint('Response: ${response.statusCode}');
       return response;
     } catch (e) {
-      // Handle errors
-      print('Error: $e');
+      debugPrint('Error: $e');
       if (e.toString().contains('Connection timed out')) {
         throw Exception('No internet connection');
       } else {
         rethrow;
       }
     }
+  }
+
+  http.BaseRequest _modifyRequest(http.BaseRequest request, Uri newUrl) {
+    if (request is http.MultipartRequest) {
+      return _createMultipartRequest(request, newUrl);
+    } else {
+      return http.Request(request.method, newUrl)
+        ..headers.addAll(request.headers)
+        ..body = request is http.Request ? request.body : '';
+    }
+  }
+
+  http.MultipartRequest _createMultipartRequest(
+      http.MultipartRequest request, Uri newUrl) {
+    final multipartRequest = http.MultipartRequest(request.method, newUrl)
+      ..headers.addAll(request.headers)
+      ..files.addAll(request.files)
+      ..fields.addAll(request.fields);
+    return multipartRequest;
   }
 
   @override

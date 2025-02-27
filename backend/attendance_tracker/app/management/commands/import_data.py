@@ -18,16 +18,16 @@ class Command(BaseCommand):
         for sheet_name, df in sheets.items():
             self.stdout.write(f'Processing sheet: {sheet_name}')
 
-            if sheet_name == 'Designations':
-                for index, row in df.iterrows():
-                    designation, created = Designation.objects.get_or_create(
-                        name=row['name'],
-                        defaults={
-                            'user_type': row['user_type'],
-                            'remote_checkin': row['remote_checkin']
-                        }
-                    )
-            elif sheet_name == 'Ports':
+            # if sheet_name == 'Designations':
+            #     for index, row in df.iterrows():
+            #         designation, created = Designation.objects.get_or_create(
+            #             name=row['name'],
+            #             defaults={
+            #                 'user_type': row['user_type'],
+            #                 'remote_checkin': row['remote_checkin']
+            #             }
+            #         )
+            if sheet_name == 'Ports':
                 for index, row in df.iterrows():
                     port, created = Port.objects.get_or_create(
                         name=row['name'],
@@ -37,26 +37,24 @@ class Command(BaseCommand):
                     )
             elif sheet_name == 'Employees':
                 for index, row in df.iterrows():
-                    designation = Designation.objects.get(name=row['designation'])
-                    port = Port.objects.get(name=row['port'])
-                    Employee.objects.get_or_create(
+                    employee, created = Employee.objects.get_or_create(
                         employee_code=row['employee_code'],
                         defaults={
-                            'profile_image': row['profile_image'],
+                            # 'profile_image': row['profile_image'],
                             'name': row['name'],
                             'gender': row['gender'],
                             'date_of_birth': row['date_of_birth'],
-                            'designation': designation,
+                            'designation': Designation.objects.get(name=row['designation']),
                             'date_of_joining': row['date_of_joining'],
                             'mobile_number': row['mobile_number'],
                             'password': row['password'],
-                            'port': port
+                            'port': Port.objects.get(name=row['port'])
                         }
                     )
             elif sheet_name == 'Shifts':
                 for index, row in df.iterrows():
                     port = Port.objects.get(name=row['port'])
-                    Shift.objects.get_or_create(
+                    shift, created = Shift.objects.get_or_create(
                         port=port,
                         name=row['name'],
                         defaults={
@@ -68,7 +66,7 @@ class Command(BaseCommand):
             elif sheet_name == 'Terminals':
                 for index, row in df.iterrows():
                     port = Port.objects.get(name=row['port'])
-                    Site.objects.get_or_create(
+                    site, created = Site.objects.get_or_create(
                         port=port,
                         name=row['name'],
                         defaults={

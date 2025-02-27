@@ -36,7 +36,7 @@ def attendance_list(request):
             user_image = request.FILES.get('user_photo')
             match = compare(user_image, employee.profile_image)
 
-            if match['match']:
+            if match[0]['match']:
                 attendance = Attendance(
                     attendance_date = request.data['attendance_date'],
                     employee = employee,
@@ -83,7 +83,7 @@ def attendance_list(request):
         
         match = compare(user_image, employee.profile_image)
 
-        if match['match']:
+        if match[0]['match']:
             attendance.attendance_date = request.data['attendance_date']
             attendance.employee = employee
             attendance.port = Port.objects.get(id = request.data['port_id'])

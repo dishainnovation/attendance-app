@@ -21,17 +21,19 @@ class Appbar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: true,
+      elevation: 2,
       title: Text(title),
       centerTitle: false,
       leading: leading,
-      shape: bottom != null
-          ? null
-          : const RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(0),
-                bottomRight: Radius.circular(80),
-              ),
-            ),
+      shadowColor: Colors.black,
+      // shape: bottom != null
+      //     ? null
+      //     : const RoundedRectangleBorder(
+      //         borderRadius: BorderRadius.only(
+      //           bottomLeft: Radius.circular(0),
+      //           bottomRight: Radius.circular(80),
+      //         ),
+      //       ),
       actions: !kDebugMode
           ? []
           : [

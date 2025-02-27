@@ -309,7 +309,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
           DataCell(Text(attendance.attendanceType)),
           DataCell(
             Image.network(
-              baseImageUrl + attendance.checkInPhoto!,
+              attendance.checkInPhoto!,
               height: 50,
               width: 50,
               fit: BoxFit.cover,
@@ -325,7 +325,7 @@ class _AttendanceReportState extends State<AttendanceReport> {
           DataCell(Text(Formatter.displayTime(attendance.checkInTime))),
           DataCell(
             Image.network(
-              '$baseImageUrl${attendance.checkOutPhoto}',
+              attendance.checkOutPhoto!,
               height: 50,
               width: 50,
               fit: BoxFit.cover,

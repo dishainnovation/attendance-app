@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/Models/EmployeeModel.dart';
+import 'package:frontend/Services/updates.dart';
 import 'package:frontend/Utils/userInfo.dart';
 import 'package:provider/provider.dart';
 
@@ -47,14 +48,15 @@ class _SplashscreenState extends State<Splashscreen> {
 
   @override
   Widget build(BuildContext context) {
+    UpdateService.checkForUpdate(context);
     return Scaffold(
       body: Center(
         child: Container(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
           decoration: const BoxDecoration(
-              image: const DecorationImage(
-                  image: const AssetImage('assets/images/splash.png'))),
+              image: DecorationImage(
+                  image: AssetImage('assets/images/splash.png'))),
           child: Image.asset('assets/images/splash.png'),
         ),
       ),
