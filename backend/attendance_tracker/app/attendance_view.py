@@ -3,14 +3,14 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.http import JsonResponse
-from .models import Attendance, Employee, Port, Shift, Site
+from .models import Attendance, Employee, Port, Shift
 from .serializers import AttendanceSerializer
 import face_recognition
 from PIL import Image, ExifTags
 import io
 import numpy as np
-import pandas as pd
 from django.http import HttpResponse
+import requests
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def attendance_list(request):
@@ -34,10 +34,24 @@ def attendance_list(request):
             employee_id = request.data['employee_id']
             employee = Employee.objects.get(id=employee_id)
             user_image = request.FILES.get('user_photo')
-            match = compare(user_image, employee.profile_image)
-            print(match)
+            print(employee.profile_image.url)
 
-            if match[0]['match']:
+            def download_file_from_url(url, local_filename):
+                response = requests.get(url, stream=True)
+                with open(local_filename, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:  # filter out keep-alive new chunks
+                            f.write(chunk)
+
+
+            download_file_from_url(employee.profile_image.url, 'profileImage.jpg')
+            image_from_s3 = open('profileImage.jpg', 'rb')
+
+            print(image_from_s3)
+
+            match = compare(user_image, image_from_s3)
+            print(match)
+            if match['match']:
                 attendance = Attendance(
                     attendance_date = request.data['attendance_date'],
                     employee = employee,
@@ -84,7 +98,7 @@ def attendance_list(request):
         
         match = compare(user_image, employee.profile_image)
 
-        if match[0]['match']:
+        if match['match']:
             attendance.attendance_date = request.data['attendance_date']
             attendance.employee = employee
             attendance.port = Port.objects.get(id = request.data['port_id'])
@@ -120,6 +134,7 @@ def compare(image1, image2):
             return np.array(image)
         
         image_array1 = process_image(image1)
+        
         image_array2 = process_image(image2)
 
         # Compute face encodings
@@ -134,7 +149,8 @@ def compare(image1, image2):
         return {'match': bool(result[0])}  # Ensure the boolean value is serialized correctly
 
     except Exception as e:
-        return {'match': False}, 500
+        print(e)
+        return {'match': False}
 
 def correct_image_orientation(image):
     try:
