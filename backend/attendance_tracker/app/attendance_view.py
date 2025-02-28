@@ -96,7 +96,20 @@ def attendance_list(request):
             attendance.save()
             return Response(status=status.HTTP_201_CREATED)
         
-        match = compare(user_image, employee.profile_image)
+        def download_file_from_url(url, local_filename):
+                response = requests.get(url, stream=True)
+                with open(local_filename, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:  # filter out keep-alive new chunks
+                            f.write(chunk)
+
+
+        download_file_from_url(employee.profile_image.url, 'profileImage.jpg')
+        image_from_s3 = open('profileImage.jpg', 'rb')
+
+        print(image_from_s3)
+
+        match = compare(user_image, image_from_s3)
 
         if match['match']:
             attendance.attendance_date = request.data['attendance_date']
