@@ -86,10 +86,9 @@ def employee_list(request):
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'error_message': error_message})
 
 @api_view(['GET'])
-def employee_view(request):
+def employee_view(request,id):
     if request.method == 'GET':
         try:
-            id = request.GET.get('id')
             employee = Employee.objects.select_related('designation').get(id=id)
         except Employee.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
