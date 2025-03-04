@@ -117,8 +117,8 @@ def attendance_list(request):
             attendance.port = Port.objects.get(id = request.data['port_id'])
             attendance.shift = Shift.objects.get(id=request.data['shift_id'])
             attendance.check_out_time = request.data['check_in_time']
-            attendance.check_out_latitude = request.data['latitude']
-            attendance.check_out_longitude = request.data['longitude']
+            attendance.check_out_latitude = request.data['check_out_latitude']
+            attendance.check_out_longitude = request.data['check_out_longitude']
             attendance.check_out_photo = user_image
             attendance.attendance_type = request.data['attendance_type']
 
